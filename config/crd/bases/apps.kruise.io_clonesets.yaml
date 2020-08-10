@@ -192,6 +192,33 @@ spec:
                     items:
                       type: string
                     type: array
+                  poolConfig:
+                    description: PoolConfig contains all configurations for pooling.
+                    properties:
+                      patchTemplate:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                      policyType:
+                        type: string
+                      pools:
+                        items:
+                          properties:
+                            matchSelector:
+                              additionalProperties:
+                                type: string
+                              type: object
+                            name:
+                              type: string
+                            percent:
+                              type: integer
+                          required:
+                          - matchSelector
+                          - name
+                          type: object
+                        type: array
+                    required:
+                    - pools
+                    type: object
                 type: object
               selector:
                 description: 'Selector is a label query over pods that should match

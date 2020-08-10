@@ -18,12 +18,14 @@ require (
 	github.com/onsi/gomega v1.19.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0-rc3
+	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
 	github.com/xyproto/simpleredis v0.0.0-20200201215242-1ff0da2967b4
+	gitlab.alibaba-inc.com/sigma/sigma-k8s-api v1.1.3
 	golang.org/x/net v0.10.0
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8
 	gomodules.xyz/jsonpatch/v2 v2.2.0
@@ -38,11 +40,13 @@ require (
 	k8s.io/component-helpers v0.24.16
 	k8s.io/cri-api v0.24.16
 	k8s.io/gengo v0.0.0-20211129171323-c02415ce4185
+	k8s.io/klog v1.0.0
 	k8s.io/klog/v2 v2.90.1
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f
 	k8s.io/kubernetes v1.24.0
 	k8s.io/utils v0.0.0-20230209194617-a36077c30491
 	sigs.k8s.io/controller-runtime v0.11.0
+	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
@@ -90,7 +94,7 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/google/gofuzz v1.1.0 // indirect
+	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -128,6 +132,7 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.19.1 // indirect
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
 	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/oauth2 v0.8.0 // indirect
 	golang.org/x/sync v0.2.0 // indirect
@@ -139,6 +144,7 @@ require (
 	google.golang.org/genproto v0.0.0-20220107163113-42d7afdf6368 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
+	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -148,7 +154,6 @@ require (
 	k8s.io/mount-utils v0.24.16 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
 // Replace to match K8s 1.24.16
@@ -182,3 +187,6 @@ replace (
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.24.16
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.12.3
 )
+
+// internal replace
+replace gopkg.in/square/go-jose.v2 => gopkg.in/square/go-jose.v2 v2.2.2

@@ -86,7 +86,7 @@ func init() {
 }
 
 var (
-	concurrentReconciles  = 3
+	concurrentReconciles  = 16
 	scheduleDaemonSetPods bool
 
 	// controllerKind contains the schema.GroupVersionKind for this controller type.

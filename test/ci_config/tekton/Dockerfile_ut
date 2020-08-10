@@ -1,0 +1,6 @@
+FROM reg.docker.alibaba-inc.com/chorus-ci/golang-etcd:1.12.6 as builder
+
+FROM reg.docker.alibaba-inc.com/ali/os:7u2
+COPY --from=builder /usr/local/go /usr/local/go
+ENV GOROOT /usr/local/go
+ENV PATH /usr/bin:/usr/local/bin:/usr/local/go/bin

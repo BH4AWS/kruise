@@ -85,6 +85,8 @@ type CloneSetSpec struct {
 
 // CloneSetScaleStrategy defines strategies for pods scale.
 type CloneSetScaleStrategy struct {
+	// PoolConfig contains all configurations for pooling.
+	PoolConfig *PoolConfig `json:"poolConfig,omitempty"`
 	// PodsToDelete is the names of Pod should be deleted.
 	// Note that this list will be truncated for non-existing pod names.
 	PodsToDelete []string `json:"podsToDelete,omitempty"`

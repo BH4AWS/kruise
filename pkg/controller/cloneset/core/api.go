@@ -20,6 +20,7 @@ import (
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	clonesetutils "github.com/openkruise/kruise/pkg/controller/cloneset/utils"
 	"github.com/openkruise/kruise/pkg/util/inplaceupdate"
+	sigmakruiseapi "gitlab.alibaba-inc.com/sigma/sigma-k8s-api/pkg/kruise"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -53,5 +54,8 @@ type Control interface {
 }
 
 func New(cs *appsv1alpha1.CloneSet) Control {
+	if cs.Labels[sigmakruiseapi.LabelCloneSetMode] == sigmakruiseapi.CloneSetASI {
+		return &asiControl{CloneSet: cs}
+	}
 	return &commonControl{CloneSet: cs}
 }

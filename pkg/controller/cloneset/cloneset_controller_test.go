@@ -48,6 +48,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	clonesetcore "github.com/openkruise/kruise/pkg/controller/cloneset/core"
 )
 
 var c client.Client
@@ -93,6 +95,7 @@ func TestReconcile(t *testing.T) {
 	_ = fieldindex.RegisterFieldIndexes(mgr.GetCache())
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	c = utilclient.NewClientFromManager(mgr, "test-cloneset-controller")
+	clonesetcore.InitASI(c)
 
 	//recFn, requests := SetupTestReconcile(newReconciler(mgr))
 	g.Expect(add(mgr, newReconciler(mgr))).NotTo(gomega.HaveOccurred())

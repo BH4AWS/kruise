@@ -84,6 +84,7 @@ func Add(mgr manager.Manager) error {
 		!utilfeature.DefaultFeatureGate.Enabled(features.PreDownloadImageForInPlaceUpdate) {
 		isPreDownloadDisabled = true
 	}
+	clonesetcore.InitASI(mgr.GetClient())
 	return add(mgr, newReconciler(mgr))
 }
 

@@ -325,6 +325,9 @@ func ValidateStatefulSetUpdate(statefulSet, oldStatefulSet *appsv1beta1.Stateful
 	statefulSet.Spec.Lifecycle = oldStatefulSet.Spec.Lifecycle
 	statefulSet.Spec.RevisionHistoryLimit = oldStatefulSet.Spec.RevisionHistoryLimit
 
+	restoreClaimTemplate := statefulSet.Spec.VolumeClaimTemplates
+	statefulSet.Spec.VolumeClaimTemplates = oldStatefulSet.Spec.VolumeClaimTemplates
+
 	if !apiequality.Semantic.DeepEqual(statefulSet.Spec, oldStatefulSet.Spec) {
 		allErrs = append(allErrs, field.Forbidden(field.NewPath("spec"), "updates to statefulset spec for fields other than 'replicas', 'template', 'reserveOrdinals', 'lifecycle', 'revisionHistoryLimit', 'persistentVolumeClaimRetentionPolicy', `volumeClaimTemplates` and 'updateStrategy' are forbidden"))
 	}
@@ -335,6 +338,7 @@ func ValidateStatefulSetUpdate(statefulSet, oldStatefulSet *appsv1beta1.Stateful
 	statefulSet.Spec.ReserveOrdinals = restoreReserveOrdinals
 	statefulSet.Spec.VolumeClaimTemplates = restorePVCTemplate
 	statefulSet.Spec.PersistentVolumeClaimRetentionPolicy = restorePersistentVolumeClaimRetentionPolicy
+	statefulSet.Spec.VolumeClaimTemplates = restoreClaimTemplate
 
 	allErrs = append(allErrs, apivalidation.ValidateNonnegativeField(int64(*statefulSet.Spec.Replicas), field.NewPath("spec", "replicas"))...)
 	allErrs = append(allErrs, ValidatePersistentVolumeClaimRetentionPolicy(statefulSet.Spec.PersistentVolumeClaimRetentionPolicy, field.NewPath("spec", "persistentVolumeClaimRetentionPolicy"))...)
