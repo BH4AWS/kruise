@@ -19,6 +19,7 @@ package apiinternal
 // Labels and Annotations for Pod
 const (
 	LabelPodUpgradeCanary       = "pod.beta1.sigma.ali/upgrade-canary"
+	LabelPodUpgradePostpone     = "pod.beta1.sigma.ali/upgrade-postpone"
 	LabelPodBatchAdoption       = "batchplan.beta1.sigma.ali/pod-state"
 	AnnotationPausePodUpgrade   = "inplaceset.beta1.sigma.ali/pause-pod-upgrade"
 	LabelPodUpgradePriority     = "pod.beta1.sigma.ali/upgrade-priority"

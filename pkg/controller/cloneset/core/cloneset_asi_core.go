@@ -213,6 +213,11 @@ func (c *asiControl) GetPodsSortFunc(pods []*v1.Pod, waitUpdateIndexes []int) fu
 		if iTobeAdopted != jTobeAdopted {
 			return iTobeAdopted
 		}
+		iPostpone := podI.Labels[apiinternal.LabelPodUpgradePostpone] == "true"
+		jPostpone := podJ.Labels[apiinternal.LabelPodUpgradePostpone] == "true"
+		if iPostpone != jPostpone {
+			return jPostpone
+		}
 		activePods := timeOblivousActivePods{podI, podJ}
 		if activePods.Less(0, 1) {
 			return true
@@ -436,10 +441,11 @@ func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSp
 		delete(pod.Annotations, apiinternal.AnnotationPodUpgradeTimeout)
 	}
 
+	now := time.Now()
 	pod.Labels[apiinternal.LabelPodUpgradingState] = apiinternal.PodUpgradingExecuting
 	pod.Labels[apiinternal.LabelFinalStateUpgrading] = "true"
 	pod.Labels[apps.StatefulSetRevisionLabel] = spec.Revision
-	pod.Annotations[sigmak8sapi.AnnotationPodSpecHash] = spec.Revision
+	pod.Annotations[sigmak8sapi.AnnotationPodSpecHash] = fmt.Sprintf("%s_%d", spec.Revision, now.UnixNano())
 
 	if c.Spec.Template.Spec.TerminationGracePeriodSeconds != nil {
 		terminationSeconds := *c.Spec.Template.Spec.TerminationGracePeriodSeconds
@@ -447,7 +453,7 @@ func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSp
 	}
 
 	upgradeSpec := podUpgradeSpec{
-		UpdateTimestamp: &metav1.Time{Time: time.Now()},
+		UpdateTimestamp: &metav1.Time{Time: now},
 		SpecHash:        spec.Revision,
 		DiffUpdate:      true,
 	}
