@@ -43,6 +43,18 @@ func RemoveSpecifiedEnvFromContainer(container map[string]interface{}, envName s
 	}
 }
 
+func GetContainerEnvVar(container *v1.Container, key string) *v1.EnvVar {
+	if container == nil {
+		return nil
+	}
+	for i, e := range container.Env {
+		if e.Name == key {
+			return &container.Env[i]
+		}
+	}
+	return nil
+}
+
 func AddContainerEnvWithOverwrite(container *v1.Container, key, value string) {
 	if container == nil {
 		return
