@@ -188,7 +188,7 @@ func (c *asiControl) newVersionedPods(cs *appsv1alpha1.CloneSet, revision string
 			pod.Annotations[apiinternal.AnnotationPodInjectNameAsSN] = "true"
 		}
 
-		c.injectAdditionalEnvsIntoPod(pod, additionalEnvs, false)
+		c.injectAdditionalEnvsIntoPod(pod, additionalEnvs, &cs.Spec.Template)
 
 		clonesetutils.UpdateStorage(cs, pod)
 
@@ -503,7 +503,7 @@ func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSp
 	pod.Annotations[apiinternal.AnnotationUpgradeSpec] = util.DumpJSON(upgradeSpec)
 	if setConfig != nil && setConfig.EnableAliProcHook {
 		additionalEnvs := c.getAdditionalEnvs(&pod.ObjectMeta, gClient)
-		c.injectAdditionalEnvsIntoPod(pod, additionalEnvs, true)
+		c.injectAdditionalEnvsIntoPod(pod, additionalEnvs, &c.Spec.Template)
 	}
 
 	return pod, nil
@@ -631,11 +631,18 @@ func (c *asiControl) getInPlaceSetConfig(r client.Reader) (*config.InPlaceSetCon
 	return &inPlaceSetConfig, nil
 }
 
-func (c *asiControl) injectAdditionalEnvsIntoPod(pod *v1.Pod, envs []v1.EnvVar, disableAdded bool) {
+func (c *asiControl) injectAdditionalEnvsIntoPod(pod *v1.Pod, envs []v1.EnvVar, template *v1.PodTemplateSpec) {
 	for _, envVar := range envs {
 		for i := range pod.Spec.Containers {
 			c := &pod.Spec.Containers[i]
-			if disableAdded && utilasi.GetContainerEnvVar(c, envVar.Name) == nil {
+			var found bool
+			for j := range template.Spec.Containers {
+				if template.Spec.Containers[j].Name == c.Name {
+					found = true
+					break
+				}
+			}
+			if !found {
 				continue
 			}
 			utilasi.AddContainerEnvHeadWithOverwrite(c, envVar.Name, envVar.Value)
