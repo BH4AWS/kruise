@@ -217,6 +217,7 @@ func TestCheckInPlaceUpdateCompleted(t *testing.T) {
 				ContainerStatuses: []v1.ContainerStatus{
 					{
 						Name:    "c1",
+						Image:   "img01",
 						ImageID: "img01",
 						Image:   "image01",
 					},
