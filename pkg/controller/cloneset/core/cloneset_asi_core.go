@@ -53,7 +53,7 @@ import (
 var (
 	gClient client.Client
 
-	inPlaceUpdateTemplateSpecPatchASIRexp = regexp.MustCompile("^/spec/containers/([0-9]+)/image|command|args|env|livenessProbe|readinessProbe|lifecycle")
+	inPlaceUpdateTemplateSpecPatchASIRexp = regexp.MustCompile("^/spec/containers/([0-9]+)/(image|command|args|env|livenessProbe|readinessProbe|lifecycle)")
 )
 
 func InitASI(c client.Client) {
