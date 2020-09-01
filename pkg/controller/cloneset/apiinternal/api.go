@@ -22,6 +22,7 @@ const (
 	LabelPodUpgradePostpone     = "pod.beta1.sigma.ali/upgrade-postpone"
 	LabelPodBatchAdoption       = "batchplan.beta1.sigma.ali/pod-state"
 	AnnotationPausePodUpgrade   = "inplaceset.beta1.sigma.ali/pause-pod-upgrade"
+	LabelPodUpgradeBatchOrder   = "inplaceset.beta1.sigma.ali/upgrade-batch-order"
 	LabelPodUpgradePriority     = "pod.beta1.sigma.ali/upgrade-priority"
 	LabelFinalStateUpgrading    = "inplaceset.beta1.sigma.ali/final-state-upgrading"
 	AnnotationUpgradeSpec       = "pod.beta1.sigma.ali/upgrade-spec"

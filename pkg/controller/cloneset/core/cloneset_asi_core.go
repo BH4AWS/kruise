@@ -461,6 +461,7 @@ func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSp
 	if c.Spec.UpdateStrategy.Type == appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType {
 		mergeVolumesIntoPod(pod, c.Spec.Template.Spec.Volumes)
 		mergeAnnotations(pod, c.Annotations[sigmak8sapi.AnnotationInplaceUpgradeMergeAnnotations], c.Spec.Template.Annotations)
+		mergeLabels(pod, c.Spec.Template.Labels)
 
 		upgradeSpec.DiffUpdate = spec.OldTemplate != nil && spec.NewTemplate != nil && !isDiffUpdateDisabled()
 	}
@@ -601,6 +602,17 @@ func mergeVolumeMountsIntoPod(pod *v1.Pod, oldContainers []v1.Container) {
 		if !found {
 			pod.Spec.Containers[i].VolumeMounts = append(pod.Spec.Containers[i].VolumeMounts, *serviceAccountMount)
 		}
+	}
+}
+
+func mergeLabels(pod *v1.Pod, templateLabels map[string]string) {
+	if pod.Labels == nil {
+		pod.Labels = map[string]string{}
+	}
+	if order, ok := templateLabels[apiinternal.LabelPodUpgradeBatchOrder]; ok {
+		pod.Labels[apiinternal.LabelPodUpgradeBatchOrder] = order
+	} else {
+		delete(pod.Labels, apiinternal.LabelPodUpgradeBatchOrder)
 	}
 }
 
