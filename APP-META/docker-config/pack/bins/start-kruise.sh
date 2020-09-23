@@ -17,7 +17,7 @@ chmod 644 /etc/logrotate.d/kruise
 #    exit 1
 #fi
 
-args="-rest-config-burst=500 -rest-config-qps=300 -logtostderr -enable-leader-election -leader-election-namespace=kube-system"
+args="-rest-config-burst=500 -rest-config-qps=300 -logtostderr -enable-leader-election -leader-election-namespace=kube-system -enable-pprof"
 
 if [ ! -z "$METRICS_PORT" ]; then
 	args="$args -metrics-addr=0.0.0.0:$METRICS_PORT"
@@ -25,6 +25,10 @@ fi
 
 if [ ! -z "$HEALTH_PORT" ]; then
 	args="$args -health-probe-addr=0.0.0.0:$HEALTH_PORT"
+fi
+
+if [ ! -z "$PPROF_PORT" ]; then
+	args="$args -pprof-addr=0.0.0.0:$PPROF_PORT"
 fi
 
 if [ -z "$LOG_LEVEL" ]; then
