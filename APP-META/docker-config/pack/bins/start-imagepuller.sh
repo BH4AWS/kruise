@@ -25,6 +25,9 @@ if ! echo "$args" | grep 'container-runtime-type' &>/dev/null; then
     elif [ -S "$RUNTIME_PATH/pouchcri.sock" ]; then
         CONTAINER_RUNTIME="containerd"
         CONTAINER_URI="$RUNTIME_PATH/pouchcri.sock"
+    elif [ -S "$RUNTIME_PATH/containerd.sock" ]; then
+        CONTAINER_RUNTIME="containerd"
+        CONTAINER_URI="$RUNTIME_PATH/containerd.sock"
     elif [ -S "$RUNTIME_PATH/docker.sock" ]; then
         CONTAINER_RUNTIME="docker"
         CONTAINER_URI="unix://$RUNTIME_PATH/docker.sock"
@@ -44,7 +47,7 @@ if [ -z "$LOG_LEVEL" ]; then
 fi
 args="$args -log_dir=$LOG_DIR"
 
-pidof kruise-imagepuller || {
-    cd /home/admin/kruise
-    ./bin/kruise-imagepuller ${args} 2>&1
-}
+while :; do
+    cd /home/admin/kruise && ./bin/kruise-imagepuller ${args} 2>&1
+    sleep 1
+done
