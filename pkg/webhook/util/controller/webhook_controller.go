@@ -195,6 +195,7 @@ func (c *Controller) Start(ctx context.Context) {
 	}, time.Second, ctx.Done())
 	klog.Infof("Started webhook-controller")
 
+	c.queue.Add("")
 	<-ctx.Done()
 }
 
