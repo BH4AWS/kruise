@@ -8,7 +8,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: kruise-webhook-service
-        namespace: kruise-system
+        namespace: kube-system
         path: /validate-apps-kruise-io-v1alpha1-broadcastjob
     failurePolicy: Fail
     name: vbroadcastjob.kb.io
@@ -26,7 +26,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: kruise-webhook-service
-        namespace: kruise-system
+        namespace: kube-system
         path: /validate-apps-kruise-io-v1alpha1-cloneset
     failurePolicy: Fail
     name: vcloneset.kb.io
@@ -44,7 +44,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: kruise-webhook-service
-        namespace: kruise-system
+        namespace: kube-system
         path: /validate-apps-kruise-io-v1alpha1-sidecarset
     failurePolicy: Fail
     name: vsidecarset.kb.io
@@ -62,8 +62,8 @@ webhooks:
       caBundle: Cg==
       service:
         name: kruise-webhook-service
-        namespace: kruise-system
-        path: /validate-apps-kruise-io-v1alpha1-statefulset
+        namespace: kube-system
+        path: /validate-apps-kruise-io-statefulset
     failurePolicy: Fail
     name: vstatefulset.kb.io
     rules:
@@ -71,6 +71,7 @@ webhooks:
           - apps.kruise.io
         apiVersions:
           - v1alpha1
+          - v1beta1
         operations:
           - CREATE
           - UPDATE
@@ -80,7 +81,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: kruise-webhook-service
-        namespace: kruise-system
+        namespace: kube-system
         path: /validate-apps-kruise-io-v1alpha1-uniteddeployment
     failurePolicy: Fail
     name: vuniteddeployment.kb.io
@@ -94,3 +95,21 @@ webhooks:
           - UPDATE
         resources:
           - uniteddeployments
+  - clientConfig:
+      caBundle: Cg==
+      service:
+        name: kruise-webhook-service
+        namespace: kube-system
+        path: /validate-apps-kruise-io-v1alpha1-daemonset
+    failurePolicy: Fail
+    name: vdaemonset.kb.io
+    rules:
+      - apiGroups:
+          - apps.kruise.io
+        apiVersions:
+          - v1alpha1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - daemonsets

@@ -36,6 +36,11 @@ if [ -z "$LOG_LEVEL" ]; then
 fi
 args="$args -v=$LOG_LEVEL"
 
+if [ -z "$RATE_LIMITER_MAX_DELAY" ]; then
+  RATE_LIMITER_MAX_DELAY="10m"
+fi
+args="$args -rate-limiter-max-delay=$RATE_LIMITER_MAX_DELAY"
+
 if [ -z "$CLONESET_WORKERS" ]; then
 	CLONESET_WORKERS="20"
 fi

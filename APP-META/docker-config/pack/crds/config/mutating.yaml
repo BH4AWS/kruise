@@ -8,7 +8,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: kruise-webhook-service
-        namespace: kruise-system
+        namespace: kube-system
         path: /mutate-apps-kruise-io-v1alpha1-sidecarset
     failurePolicy: Fail
     name: msidecarset.kb.io
@@ -26,7 +26,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: kruise-webhook-service
-        namespace: kruise-system
+        namespace: kube-system
         path: /mutate-pod
     failurePolicy: Fail
     name: mpod.kb.io
@@ -47,7 +47,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: kruise-webhook-service
-        namespace: kruise-system
+        namespace: kube-system
         path: /mutate-apps-kruise-io-v1alpha1-broadcastjob
     failurePolicy: Fail
     name: mbroadcastjob.kb.io
@@ -65,7 +65,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: kruise-webhook-service
-        namespace: kruise-system
+        namespace: kube-system
         path: /mutate-apps-kruise-io-v1alpha1-cloneset
     failurePolicy: Fail
     name: mcloneset.kb.io
@@ -83,7 +83,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: kruise-webhook-service
-        namespace: kruise-system
+        namespace: kube-system
         path: /mutate-apps-kruise-io-v1alpha1-daemonset
     failurePolicy: Fail
     name: mdaemonset.kb.io
@@ -101,8 +101,8 @@ webhooks:
       caBundle: Cg==
       service:
         name: kruise-webhook-service
-        namespace: kruise-system
-        path: /mutate-apps-kruise-io-v1alpha1-statefulset
+        namespace: kube-system
+        path: /mutate-apps-kruise-io-statefulset
     failurePolicy: Fail
     name: mstatefulset.kb.io
     rules:
@@ -110,6 +110,7 @@ webhooks:
           - apps.kruise.io
         apiVersions:
           - v1alpha1
+          - v1beta1
         operations:
           - CREATE
           - UPDATE
@@ -119,7 +120,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: kruise-webhook-service
-        namespace: kruise-system
+        namespace: kube-system
         path: /mutate-apps-kruise-io-v1alpha1-uniteddeployment
     failurePolicy: Fail
     name: muniteddeployment.kb.io
