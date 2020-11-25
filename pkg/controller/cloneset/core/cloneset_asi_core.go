@@ -106,8 +106,8 @@ func (c *asiControl) IsReadyToScale() bool {
 		c.Annotations[sigmakruiseapi.AnnotationCloneSetBatchAdoptionToAdopt] == ""
 }
 
-func (c *asiControl) ExtraStatusCalculation(cs *appsv1alpha1.CloneSet, pods []*v1.Pod) bool {
-	return false
+func (c *asiControl) ExtraStatusCalculation(status *appsv1alpha1.CloneSetStatus, pods []*v1.Pod) error {
+	return nil
 }
 
 func (c *asiControl) NewVersionedPods(currentCS, updateCS *appsv1alpha1.CloneSet,
