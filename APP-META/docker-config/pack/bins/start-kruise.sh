@@ -47,7 +47,15 @@ fi
 args="$args -cloneset-workers=$CLONESET_WORKERS"
 
 pidof kruise-manager || {
-    cd /home/admin/kruise
-    ./bin/kubectl apply -f crds/
-    ./bin/kruise-manager ${args} 2>&1 | tee -a log/manager.log
+  cd /home/admin/kruise
+  for FILE in crds/*.yaml; do
+    if [[ $FILE == *"sidecarsets"* ]]; then
+      if [[ $CUSTOM_RESOURCE_ENABLE != *"SidecarSet"* ]]; then
+        echo "find SidecarSet not enabled, skip to install"
+        continue
+      fi
+    fi
+    ./bin/kubectl replace -f $FILE || ./bin/kubectl create -f $FILE
+  done
+  ./bin/kruise-manager ${args} 2>&1 | tee -a log/manager.log
 }
