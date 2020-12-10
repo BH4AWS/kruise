@@ -17,10 +17,12 @@ limitations under the License.
 package core
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -40,6 +42,7 @@ import (
 	apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	utilrand "k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/klog"
@@ -107,6 +110,27 @@ func (c *asiControl) IsReadyToScale() bool {
 }
 
 func (c *asiControl) ExtraStatusCalculation(status *appsv1alpha1.CloneSetStatus, pods []*v1.Pod) error {
+	publicSuccessReplicas := 0
+	for _, pod := range pods {
+		if c.isPublishSuccess(status, pod) {
+			publicSuccessReplicas++
+		}
+	}
+
+	publicSuccessReplicasStr := strconv.Itoa(publicSuccessReplicas)
+	if c.Annotations[apiinternal.AnnotationPublishSuccessReplicas] != publicSuccessReplicasStr {
+		body := fmt.Sprintf(
+			`{"metadata":{"annotations":{"%s":"%s"}}}`,
+			apiinternal.AnnotationPublishSuccessReplicas,
+			publicSuccessReplicasStr,
+		)
+
+		if err := gClient.Patch(context.TODO(), c.CloneSet, client.RawPatch(types.MergePatchType, []byte(body))); err != nil {
+			klog.Errorf("CloneSet %s/%s patch annotation err: %v", c.CloneSet.Namespace, c.CloneSet.Name, err)
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -717,4 +741,26 @@ func prefixNameWithMaxLen(prefix string, name string, maxLen int) string {
 // TODO(jiuzhu): remove this function after stable
 func isDiffUpdateDisabled() bool {
 	return os.Getenv("DISABLE_CLONESET_DIFF_UPDATE") == "true"
+}
+
+func (c *asiControl) isPublishSuccess(status *appsv1alpha1.CloneSetStatus, pod *v1.Pod) bool {
+	if clonesetutils.GetPodRevision(pod) != status.UpdateRevision {
+		return false
+	}
+
+	if c.IsPodUpdateReady(pod, c.Spec.MinReadySeconds) {
+		return true
+	}
+
+	if pod.Status.Phase == v1.PodPending && status.UpdateRevision == pod.Labels[apps.ControllerRevisionHashLabelKey] {
+		for _, condition := range pod.Status.Conditions {
+			if condition.Type == v1.PodScheduled && condition.Status == v1.ConditionFalse {
+				if c.Spec.UpdateStrategy.Type == appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
 }

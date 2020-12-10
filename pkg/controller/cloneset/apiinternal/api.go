@@ -18,20 +18,21 @@ package apiinternal
 
 // Labels and Annotations for Pod
 const (
-	LabelPodUpgradeCanary       = "pod.beta1.sigma.ali/upgrade-canary"
-	LabelPodUpgradePostpone     = "pod.beta1.sigma.ali/upgrade-postpone"
-	LabelPodBatchAdoption       = "batchplan.beta1.sigma.ali/pod-state"
-	AnnotationPausePodUpgrade   = "inplaceset.beta1.sigma.ali/pause-pod-upgrade"
-	LabelPodUpgradeBatchOrder   = "inplaceset.beta1.sigma.ali/upgrade-batch-order"
-	LabelPodUpgradePriority     = "pod.beta1.sigma.ali/upgrade-priority"
-	LabelFinalStateUpgrading    = "inplaceset.beta1.sigma.ali/final-state-upgrading"
-	AnnotationUpgradeSpec       = "pod.beta1.sigma.ali/upgrade-spec"
-	AnnotationPodUpgradeTimeout = "pod.beta1.sigma.ali/upgrade-timeout"
-	AnnotationPodInjectNameAsSN = "pods.sigma.alibaba-inc.com/inject-name-as-sn"
-	LabelPodUpgradingState      = "pod.beta1.sigma.ali/upgrading-state"
-	PodUpgradingExecuting       = "Executing"
-	PodUpgradingSucceeded       = "Succeeded"
-	AnnotationPodDebugContext   = "pod.beta1.sigma.ali/debug-context"
+	LabelPodUpgradeCanary            = "pod.beta1.sigma.ali/upgrade-canary"
+	LabelPodUpgradePostpone          = "pod.beta1.sigma.ali/upgrade-postpone"
+	LabelPodBatchAdoption            = "batchplan.beta1.sigma.ali/pod-state"
+	AnnotationPausePodUpgrade        = "inplaceset.beta1.sigma.ali/pause-pod-upgrade"
+	LabelPodUpgradeBatchOrder        = "inplaceset.beta1.sigma.ali/upgrade-batch-order"
+	LabelPodUpgradePriority          = "pod.beta1.sigma.ali/upgrade-priority"
+	LabelFinalStateUpgrading         = "inplaceset.beta1.sigma.ali/final-state-upgrading"
+	AnnotationUpgradeSpec            = "pod.beta1.sigma.ali/upgrade-spec"
+	AnnotationPodUpgradeTimeout      = "pod.beta1.sigma.ali/upgrade-timeout"
+	AnnotationPodInjectNameAsSN      = "pods.sigma.alibaba-inc.com/inject-name-as-sn"
+	LabelPodUpgradingState           = "pod.beta1.sigma.ali/upgrading-state"
+	PodUpgradingExecuting            = "Executing"
+	PodUpgradingSucceeded            = "Succeeded"
+	AnnotationPodDebugContext        = "pod.beta1.sigma.ali/debug-context"
+	AnnotationPublishSuccessReplicas = "cloneset.beta1.sigma.ali/publish-success-replicas"
 )
 
 const (
