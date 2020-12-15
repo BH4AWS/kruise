@@ -33,6 +33,7 @@ const (
 	PodUpgradingSucceeded            = "Succeeded"
 	AnnotationPodDebugContext        = "pod.beta1.sigma.ali/debug-context"
 	AnnotationPublishSuccessReplicas = "cloneset.beta1.sigma.ali/publish-success-replicas"
+	AnnotationAppsPublishId          = "apps.alibabacloud.com/publish-id"
 )
 
 const (

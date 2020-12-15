@@ -535,6 +535,10 @@ func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSp
 		c.injectAdditionalEnvsIntoPod(pod, additionalEnvs, &c.Spec.Template)
 	}
 
+	if publishId, ok := c.Annotations[apiinternal.AnnotationAppsPublishId]; ok {
+		pod.Annotations[apiinternal.AnnotationAppsPublishId] = publishId
+	}
+
 	return pod, nil
 }
 
