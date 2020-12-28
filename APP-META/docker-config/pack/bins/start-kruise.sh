@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 
+mkdir -p /home/admin/logs/ /home/admin/kruise/log/
+chmod 755 /home/admin/kruise/log/
+chmod 644 /etc/logrotate.d/kruise
+
+if [ ! -z "$LOG_ROTATE_LIMIT" ]; then
+  sed -i 's/25/'"${LOG_ROTATE_LIMIT}"'/g' /etc/logrotate.d/kruise
+fi
+
 # 启动crond用于logrotate
 pidof crond || {
 crond -m/dev/null &
 }
-mkdir -p /home/admin/logs/ /home/admin/kruise/log/
-chmod 755 /home/admin/kruise/log/
-chmod 644 /etc/logrotate.d/kruise
 
 #if [ -z "$WEBHOOK_HOST" ]; then
 #	export WEBHOOK_HOST=$(hostname -i)
