@@ -10,6 +10,7 @@ go env
 # build
 #make manifests 1>&2
 CGO_ENABLED=0 go build -mod=vendor -a -o APP-META/docker-config/pack/bins/kruise-manager main.go
+CGO_ENABLED=0 go build -mod=vendor -a -o APP-META/docker-config/pack/bins/kruise-daemon ./cmd/daemon
 CGO_ENABLED=0 go build -mod=vendor -a -o APP-META/docker-config/pack/bins/kruise-imagepuller ./cmd/imagepuller
 
 # package

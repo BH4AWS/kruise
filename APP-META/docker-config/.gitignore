@@ -1,2 +1,3 @@
-pack/bins/manager
+pack/bins/kruise-manager
+pack/bins/kruise-daemon
 pack/bins/kubectl
