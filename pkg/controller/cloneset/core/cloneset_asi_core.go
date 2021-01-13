@@ -500,6 +500,14 @@ func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSp
 		c.injectAdditionalEnvsIntoPod(pod, additionalEnvs)
 	}
 
+	if rolloutId, ok := c.Labels[apiinternal.LabelRolloutId]; ok {
+		pod.Labels[apiinternal.LabelRolloutId] = rolloutId
+	}
+
+	if rolloutBatchId, ok := c.Labels[apiinternal.LabelRolloutBatchId]; ok {
+		pod.Labels[apiinternal.LabelRolloutBatchId] = rolloutBatchId
+	}
+
 	return pod, nil
 }
 

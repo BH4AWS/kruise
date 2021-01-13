@@ -34,6 +34,8 @@ const (
 	AnnotationPodDebugContext        = "pod.beta1.sigma.ali/debug-context"
 	AnnotationPublishSuccessReplicas = "cloneset.beta1.sigma.ali/publish-success-replicas"
 	AnnotationAppsPublishId          = "apps.alibabacloud.com/publish-id"
+	LabelRolloutId                   = "apps.kruise.io/rollout-id"
+ 	LabelRolloutBatchId              = "apps.kruise.io/rollout-batch-id"
 )
 
 const (
