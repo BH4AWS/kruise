@@ -17,6 +17,7 @@ limitations under the License.
 package util
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"testing"
@@ -70,7 +71,7 @@ func TestGetFromKubeSystem(t *testing.T) {
 			"password": []byte("whatever"),
 		},
 	}
-	if _, err := fakeClient.CoreV1().Secrets("kube-system").Create(&secret); err != nil {
+	if _, err := fakeClient.CoreV1().Secrets("kube-system").Create(context.TODO(), &secret, metav1.CreateOptions{}); err != nil {
 		t.Fatalf("failed to create fake secret: %v", err)
 	}
 
@@ -85,7 +86,7 @@ func TestGetFromKubeSystem(t *testing.T) {
 
 	// try to alter secret, it should still get the value in cache
 	secret.Data["password"] = []byte("5678")
-	_, _ = fakeClient.CoreV1().Secrets("kube-system").Update(&secret)
+	_, _ = fakeClient.CoreV1().Secrets("kube-system").Update(context.TODO(), &secret, metav1.UpdateOptions{})
 
 	if err := validateGet(manager, image, expectedInfo); err != nil {
 		t.Fatalf("%v", err)

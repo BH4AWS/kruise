@@ -17,6 +17,7 @@ limitations under the License.
 package util
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -116,7 +117,7 @@ func (i *imagePullAccountManager) getAuthFromKubeSystem() (*AuthInfo, error) {
 		LabelSelector:   fmt.Sprintf("usage=%s,username=%s", internalRegistryUsage, internalRegistryUser),
 		ResourceVersion: "0",
 	}
-	secretList, err := i.kubeClient.CoreV1().Secrets("kube-system").List(opts)
+	secretList, err := i.kubeClient.CoreV1().Secrets("kube-system").List(context.TODO(), opts)
 	if err != nil {
 		return nil, err
 	}

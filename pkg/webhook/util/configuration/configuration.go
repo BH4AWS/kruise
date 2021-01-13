@@ -37,8 +37,9 @@ import (
 )
 
 const (
-	mutatingWebhookConfigurationName   = "kruise-mutating-webhook-configuration"
-	validatingWebhookConfigurationName = "kruise-validating-webhook-configuration"
+	oldMutatingWebhookConfigurationName = "kruise-mutating-webhook-configuration"
+	mutatingWebhookConfigurationName    = "aaa-kruise-mutating-webhook-configuration"
+	validatingWebhookConfigurationName  = "kruise-validating-webhook-configuration"
 
 	mutatingFilePath   = "/home/admin/kruise/crds/config/mutating.yaml"
 	validatingFilePath = "/home/admin/kruise/crds/config/validating.yaml"
@@ -128,6 +129,12 @@ func Ensure(kubeClient clientset.Interface, handlers map[string]admission.Handle
 		gotMutatingConfig.Webhooks = mutatingConfig.Webhooks
 		if _, err := kubeClient.AdmissionregistrationV1().MutatingWebhookConfigurations().Update(context.TODO(), gotMutatingConfig, metav1.UpdateOptions{}); err != nil {
 			return fmt.Errorf("failed to update %s: %v", mutatingWebhookConfigurationName, err)
+		}
+	}
+
+	if _, err := kubeClient.AdmissionregistrationV1().MutatingWebhookConfigurations().Get(context.TODO(), oldMutatingWebhookConfigurationName, metav1.GetOptions{}); err == nil {
+		if err = kubeClient.AdmissionregistrationV1().MutatingWebhookConfigurations().Delete(context.TODO(), oldMutatingWebhookConfigurationName, metav1.DeleteOptions{}); err != nil {
+			return fmt.Errorf("failed to delete %s: %v", oldMutatingWebhookConfigurationName, err)
 		}
 	}
 

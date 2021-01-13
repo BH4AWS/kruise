@@ -50,7 +50,7 @@ import (
 )
 
 const (
-	mutatingWebhookConfigurationName   = "kruise-mutating-webhook-configuration"
+	mutatingWebhookConfigurationName   = "aaa-kruise-mutating-webhook-configuration"
 	validatingWebhookConfigurationName = "kruise-validating-webhook-configuration"
 
 	defaultResyncPeriod = time.Minute

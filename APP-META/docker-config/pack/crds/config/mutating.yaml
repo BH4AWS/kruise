@@ -2,7 +2,7 @@ apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
   creationTimestamp: null
-  name: kruise-mutating-webhook-configuration
+  name: aaa-kruise-mutating-webhook-configuration
 webhooks:
   - clientConfig:
       caBundle: Cg==

@@ -17,12 +17,10 @@ limitations under the License.
 package core
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -42,7 +40,6 @@ import (
 	apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	utilrand "k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/klog"
@@ -56,7 +53,7 @@ import (
 var (
 	gClient client.Client
 
-	inPlaceUpdateTemplateSpecPatchASIRexp = regexp.MustCompile("^/spec/containers/([0-9]+)/(image|command|args|env|livenessProbe|readinessProbe|lifecycle)")
+	inPlaceUpdateTemplateSpecPatchASIRexp = regexp.MustCompile("^/spec/containers/([0-9]+)/image|command|args|env|livenessProbe|readinessProbe|lifecycle")
 )
 
 func InitASI(c client.Client) {
@@ -107,31 +104,6 @@ func (c *asiControl) ApplyRevisionPatch(patched []byte) (*appsv1alpha1.CloneSet,
 func (c *asiControl) IsReadyToScale() bool {
 	return c.Annotations[sigmakruiseapi.AnnotationCloneSetBatchAdoptionToAbandon] == "" &&
 		c.Annotations[sigmakruiseapi.AnnotationCloneSetBatchAdoptionToAdopt] == ""
-}
-
-func (c *asiControl) ExtraStatusCalculation(status *appsv1alpha1.CloneSetStatus, pods []*v1.Pod) error {
-	publicSuccessReplicas := 0
-	for _, pod := range pods {
-		if c.isPublishSuccess(status, pod) {
-			publicSuccessReplicas++
-		}
-	}
-
-	publicSuccessReplicasStr := strconv.Itoa(publicSuccessReplicas)
-	if c.Annotations[apiinternal.AnnotationPublishSuccessReplicas] != publicSuccessReplicasStr {
-		body := fmt.Sprintf(
-			`{"metadata":{"annotations":{"%s":"%s"}}}`,
-			apiinternal.AnnotationPublishSuccessReplicas,
-			publicSuccessReplicasStr,
-		)
-
-		if err := gClient.Patch(context.TODO(), c.CloneSet, client.RawPatch(types.MergePatchType, []byte(body))); err != nil {
-			klog.Errorf("CloneSet %s/%s patch annotation err: %v", c.CloneSet.Namespace, c.CloneSet.Name, err)
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (c *asiControl) NewVersionedPods(currentCS, updateCS *appsv1alpha1.CloneSet,
@@ -216,7 +188,7 @@ func (c *asiControl) newVersionedPods(cs *appsv1alpha1.CloneSet, revision string
 			pod.Annotations[apiinternal.AnnotationPodInjectNameAsSN] = "true"
 		}
 
-		c.injectAdditionalEnvsIntoPod(pod, additionalEnvs, &cs.Spec.Template)
+		c.injectAdditionalEnvsIntoPod(pod, additionalEnvs)
 
 		clonesetutils.UpdateStorage(cs, pod)
 
@@ -240,11 +212,6 @@ func (c *asiControl) GetPodsSortFunc(pods []*v1.Pod, waitUpdateIndexes []int) fu
 		jTobeAdopted := podJ.Labels[apiinternal.LabelPodBatchAdoption] == "Adopt" && podJ.Labels[apps.ControllerRevisionHashLabelKey] == ""
 		if iTobeAdopted != jTobeAdopted {
 			return iTobeAdopted
-		}
-		iPostpone := podI.Labels[apiinternal.LabelPodUpgradePostpone] == "true"
-		jPostpone := podJ.Labels[apiinternal.LabelPodUpgradePostpone] == "true"
-		if iPostpone != jPostpone {
-			return jPostpone
 		}
 		activePods := timeOblivousActivePods{podI, podJ}
 		if activePods.Less(0, 1) {
@@ -469,11 +436,10 @@ func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSp
 		delete(pod.Annotations, apiinternal.AnnotationPodUpgradeTimeout)
 	}
 
-	now := time.Now()
 	pod.Labels[apiinternal.LabelPodUpgradingState] = apiinternal.PodUpgradingExecuting
 	pod.Labels[apiinternal.LabelFinalStateUpgrading] = "true"
 	pod.Labels[apps.StatefulSetRevisionLabel] = spec.Revision
-	pod.Annotations[sigmak8sapi.AnnotationPodSpecHash] = fmt.Sprintf("%s_%d", spec.Revision, now.UnixNano())
+	pod.Annotations[sigmak8sapi.AnnotationPodSpecHash] = spec.Revision
 
 	if c.Spec.Template.Spec.TerminationGracePeriodSeconds != nil {
 		terminationSeconds := *c.Spec.Template.Spec.TerminationGracePeriodSeconds
@@ -481,7 +447,7 @@ func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSp
 	}
 
 	upgradeSpec := podUpgradeSpec{
-		UpdateTimestamp: &metav1.Time{Time: now},
+		UpdateTimestamp: &metav1.Time{Time: time.Now()},
 		SpecHash:        spec.Revision,
 		DiffUpdate:      true,
 	}
@@ -489,7 +455,6 @@ func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSp
 	if c.Spec.UpdateStrategy.Type == appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType {
 		mergeVolumesIntoPod(pod, c.Spec.Template.Spec.Volumes)
 		mergeAnnotations(pod, c.Annotations[sigmak8sapi.AnnotationInplaceUpgradeMergeAnnotations], c.Spec.Template.Annotations)
-		mergeLabels(pod, c.Spec.Template.Labels)
 
 		upgradeSpec.DiffUpdate = spec.OldTemplate != nil && spec.NewTemplate != nil && !isDiffUpdateDisabled()
 	}
@@ -532,11 +497,7 @@ func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSp
 	pod.Annotations[apiinternal.AnnotationUpgradeSpec] = util.DumpJSON(upgradeSpec)
 	if setConfig != nil && setConfig.EnableAliProcHook {
 		additionalEnvs := c.getAdditionalEnvs(&pod.ObjectMeta, gClient)
-		c.injectAdditionalEnvsIntoPod(pod, additionalEnvs, &c.Spec.Template)
-	}
-
-	if publishId, ok := c.Annotations[apiinternal.AnnotationAppsPublishId]; ok {
-		pod.Annotations[apiinternal.AnnotationAppsPublishId] = publishId
+		c.injectAdditionalEnvsIntoPod(pod, additionalEnvs)
 	}
 
 	return pod, nil
@@ -637,17 +598,6 @@ func mergeVolumeMountsIntoPod(pod *v1.Pod, oldContainers []v1.Container) {
 	}
 }
 
-func mergeLabels(pod *v1.Pod, templateLabels map[string]string) {
-	if pod.Labels == nil {
-		pod.Labels = map[string]string{}
-	}
-	if order, ok := templateLabels[apiinternal.LabelPodUpgradeBatchOrder]; ok {
-		pod.Labels[apiinternal.LabelPodUpgradeBatchOrder] = order
-	} else {
-		delete(pod.Labels, apiinternal.LabelPodUpgradeBatchOrder)
-	}
-}
-
 func mergeAnnotations(pod *v1.Pod, upgradeMergeAnnotations string, templateAnnotations map[string]string) {
 	if pod.Annotations == nil {
 		pod.Annotations = map[string]string{}
@@ -675,21 +625,10 @@ func (c *asiControl) getInPlaceSetConfig(r client.Reader) (*config.InPlaceSetCon
 	return &inPlaceSetConfig, nil
 }
 
-func (c *asiControl) injectAdditionalEnvsIntoPod(pod *v1.Pod, envs []v1.EnvVar, template *v1.PodTemplateSpec) {
+func (c *asiControl) injectAdditionalEnvsIntoPod(pod *v1.Pod, envs []v1.EnvVar) {
 	for _, envVar := range envs {
 		for i := range pod.Spec.Containers {
-			c := &pod.Spec.Containers[i]
-			var found bool
-			for j := range template.Spec.Containers {
-				if template.Spec.Containers[j].Name == c.Name {
-					found = true
-					break
-				}
-			}
-			if !found {
-				continue
-			}
-			utilasi.AddContainerEnvHeadWithOverwrite(c, envVar.Name, envVar.Value)
+			utilasi.AddContainerEnvHeadWithOverwrite(&pod.Spec.Containers[i], envVar.Name, envVar.Value)
 		}
 	}
 }
@@ -745,26 +684,4 @@ func prefixNameWithMaxLen(prefix string, name string, maxLen int) string {
 // TODO(jiuzhu): remove this function after stable
 func isDiffUpdateDisabled() bool {
 	return os.Getenv("DISABLE_CLONESET_DIFF_UPDATE") == "true"
-}
-
-func (c *asiControl) isPublishSuccess(status *appsv1alpha1.CloneSetStatus, pod *v1.Pod) bool {
-	if clonesetutils.GetPodRevision("", pod) != status.UpdateRevision {
-		return false
-	}
-
-	if c.IsPodUpdateReady(pod, c.Spec.MinReadySeconds) {
-		return true
-	}
-
-	if pod.Status.Phase == v1.PodPending && status.UpdateRevision == pod.Labels[apps.ControllerRevisionHashLabelKey] {
-		for _, condition := range pod.Status.Conditions {
-			if condition.Type == v1.PodScheduled && condition.Status == v1.ConditionFalse {
-				if c.Spec.UpdateStrategy.Type == appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType {
-					return true
-				}
-			}
-		}
-	}
-
-	return false
 }
