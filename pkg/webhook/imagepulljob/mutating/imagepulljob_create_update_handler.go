@@ -47,9 +47,14 @@ func (h *ImagePullJobCreateUpdateHandler) Handle(ctx context.Context, req admiss
 	}
 	var copy runtime.Object = obj.DeepCopy()
 	defaults.SetDefaultsImagePullJob(obj)
-	if reflect.DeepEqual(obj, copy) {
-		return admission.Allowed("")
+	if obj.Spec.CompletionPolicy.Type == appsv1alpha1.Never {
+		obj.Spec.CompletionPolicy.TTLSecondsAfterFinished = nil
+		obj.Spec.CompletionPolicy.ActiveDeadlineSeconds = nil
 	}
+
+        if reflect.DeepEqual(obj, copy) {
+                return admission.Allowed("")
+        }
 	marshalled, err := json.Marshal(obj)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, err)

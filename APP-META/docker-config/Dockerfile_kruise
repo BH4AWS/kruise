@@ -1,6 +1,6 @@
 FROM reg.docker.alibaba-inc.com/ackee/centos:latest
 
-RUN yum install net-tools iproute bind-utils openssh-clients cronie sysvinit-tools logrotate less -y && yum update -y
+RUN yum install ca-certificates net-tools iproute bind-utils openssh-clients cronie sysvinit-tools logrotate less -y && yum update -y
 
 WORKDIR /home/admin/kruise
 COPY pack/hack/logrotate /etc/cron.hourly/
