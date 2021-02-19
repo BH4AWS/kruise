@@ -51,6 +51,10 @@ if [ -z "$CLONESET_WORKERS" ]; then
 fi
 args="$args --cloneset-workers=$CLONESET_WORKERS"
 
+if [ ! -z "$FEATURE_GATES" ]; then
+	args="$args --feature-gates=$FEATURE_GATES"
+fi
+
 pidof kruise-manager || {
   cd /home/admin/kruise
   for FILE in crds/*.yaml; do
