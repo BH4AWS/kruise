@@ -17,15 +17,16 @@ limitations under the License.
 package core
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/appscode/jsonpatch"
-	appspub "github.com/openkruise/kruise/apis/apps/pub"
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	"github.com/openkruise/kruise/pkg/controller/cloneset/apiinternal"
 	clonesetutils "github.com/openkruise/kruise/pkg/controller/cloneset/utils"
@@ -40,6 +41,7 @@ import (
 	apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	utilrand "k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/klog"
@@ -104,6 +106,55 @@ func (c *asiControl) ApplyRevisionPatch(patched []byte) (*appsv1alpha1.CloneSet,
 func (c *asiControl) IsReadyToScale() bool {
 	return c.Annotations[sigmakruiseapi.AnnotationCloneSetBatchAdoptionToAbandon] == "" &&
 		c.Annotations[sigmakruiseapi.AnnotationCloneSetBatchAdoptionToAdopt] == ""
+}
+
+func (c *asiControl) ExtraStatusCalculation(status *appsv1alpha1.CloneSetStatus, pods []*v1.Pod) error {
+	publishSuccessReplicas := 0
+	scheduledFailedCount := 0
+	imageFailedCount := 0
+	appFailedCount := 0
+	for _, pod := range pods {
+		if c.isPublishSuccess(status, pod) {
+			publishSuccessReplicas++
+		} else if c.isScheduledFailed(status, pod) {
+			scheduledFailedCount++
+		} else {
+			podReason := parsePodReason(pod)
+			if strings.Contains(podReason, "Image") {
+				imageFailedCount++
+			} else if strings.Contains(podReason, "PostStartHookError") ||
+				strings.Contains(podReason, "CrashLoopBackOff") {
+				appFailedCount++
+			}
+		}
+	}
+
+	publishSuccessReplicasStr := strconv.Itoa(publishSuccessReplicas)
+	scheduledFailedCountStr := strconv.Itoa(scheduledFailedCount)
+	imageFailedCountStr := strconv.Itoa(imageFailedCount)
+	appFailedCountStr := strconv.Itoa(appFailedCount)
+	if c.Annotations[apiinternal.AnnotationPublishSuccessReplicas] != publishSuccessReplicasStr ||
+		c.Annotations[apiinternal.AnnotationScheduledFailCount] != scheduledFailedCountStr ||
+		c.Annotations[apiinternal.AnnotationAppFailCount] != appFailedCountStr ||
+		c.Annotations[apiinternal.AnnotationImageFailCount] != imageFailedCountStr {
+		body := fmt.Sprintf(
+			`{"metadata":{"annotations":{"%s":"%s","%s":"%s","%s":"%s","%s":"%s"}}}`,
+			apiinternal.AnnotationPublishSuccessReplicas,
+			publishSuccessReplicasStr,
+			apiinternal.AnnotationScheduledFailCount,
+			scheduledFailedCountStr,
+			apiinternal.AnnotationImageFailCount,
+			imageFailedCountStr,
+			apiinternal.AnnotationAppFailCount,
+			appFailedCountStr,
+		)
+		if err := gClient.Patch(context.TODO(), c.CloneSet, client.RawPatch(types.MergePatchType, []byte(body))); err != nil {
+			klog.Errorf("CloneSet %s/%s patch annotation err: %v", c.CloneSet.Namespace, c.CloneSet.Name, err)
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (c *asiControl) NewVersionedPods(currentCS, updateCS *appsv1alpha1.CloneSet,
@@ -359,9 +410,9 @@ func (c *asiControl) checkPodUpdateCompleted(pod *v1.Pod) error {
 
 func (c *asiControl) GetUpdateOptions() *inplaceupdate.UpdateOptions {
 	opts := &inplaceupdate.UpdateOptions{
-		CalculateSpec:           c.customizeSpecCalculate,
-		PatchSpecToPod:          c.customizePatchPod,
-		CheckPodUpdateCompleted: c.checkPodUpdateCompleted,
+		CalculateSpec:        c.customizeSpecCalculate,
+		PatchSpecToPod:       c.customizePatchPod,
+		CheckUpdateCompleted: c.checkPodUpdateCompleted,
 	}
 	if c.Spec.UpdateStrategy.InPlaceUpdateStrategy != nil {
 		opts.GracePeriodSeconds = c.Spec.UpdateStrategy.InPlaceUpdateStrategy.GracePeriodSeconds
@@ -421,7 +472,7 @@ func (c *asiControl) customizeSpecCalculate(oldRevision, newRevision *apps.Contr
 	return updateSpec
 }
 
-func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSpec, state *appspub.InPlaceUpdateState) (*v1.Pod, error) {
+func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSpec) (*v1.Pod, error) {
 	setConfig, err := c.getInPlaceSetConfig(gClient)
 	if err != nil {
 		klog.Warningf("CloneSet %s/%s failed to get InPlaceSet config: %v", c.Namespace, c.Name, err)
@@ -746,5 +797,98 @@ func (c *asiControl) isPublishSuccess(status *appsv1alpha1.CloneSetStatus, pod *
 		}
 	}
 
+	return false
+}
+
+func (c *asiControl) isScheduledFailed(status *appsv1alpha1.CloneSetStatus, pod *v1.Pod) bool {
+	if pod.Status.Phase == v1.PodPending && status.UpdateRevision == pod.Labels[apps.ControllerRevisionHashLabelKey] {
+		for _, condition := range pod.Status.Conditions {
+			if condition.Type == v1.PodScheduled && condition.Status == v1.ConditionFalse {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// parsePodReason is similar to pkg/printers/internalversion/printers.go:printPod
+func parsePodReason(pod *v1.Pod) string {
+	reason := string(pod.Status.Phase)
+	if pod.Status.Reason != "" {
+		reason = pod.Status.Reason
+	}
+	initializing := false
+	for i := range pod.Status.InitContainerStatuses {
+		container := pod.Status.InitContainerStatuses[i]
+		switch {
+		case container.State.Terminated != nil && container.State.Terminated.ExitCode == 0:
+			continue
+		case container.State.Terminated != nil:
+			// initialization is failed
+			if len(container.State.Terminated.Reason) == 0 {
+				if container.State.Terminated.Signal != 0 {
+					reason = fmt.Sprintf("Init:Signal:%d", container.State.Terminated.Signal)
+				} else {
+					reason = fmt.Sprintf("Init:ExitCode:%d", container.State.Terminated.ExitCode)
+				}
+			} else {
+				reason = "Init:" + container.State.Terminated.Reason
+			}
+			initializing = true
+		case container.State.Waiting != nil && len(container.State.Waiting.Reason) > 0 && container.State.Waiting.Reason != "PodInitializing":
+			reason = "Init:" + container.State.Waiting.Reason
+			initializing = true
+		default:
+			reason = fmt.Sprintf("Init:%d/%d", i, len(pod.Spec.InitContainers))
+			initializing = true
+		}
+		break
+	}
+	if !initializing {
+		hasRunning := false
+		for i := len(pod.Status.ContainerStatuses) - 1; i >= 0; i-- {
+			container := pod.Status.ContainerStatuses[i]
+			if isIgnoredContainer(pod, container.Name) {
+				continue
+			}
+			if container.State.Waiting != nil && container.State.Waiting.Reason != "" {
+				reason = container.State.Waiting.Reason
+			} else if container.State.Terminated != nil && container.State.Terminated.Reason != "" {
+				reason = container.State.Terminated.Reason
+			} else if container.State.Terminated != nil && container.State.Terminated.Reason == "" {
+				if container.State.Terminated.Signal != 0 {
+					reason = fmt.Sprintf("Signal:%d", container.State.Terminated.Signal)
+				} else {
+					reason = fmt.Sprintf("ExitCode:%d", container.State.Terminated.ExitCode)
+				}
+			} else if container.Ready && container.State.Running != nil {
+				hasRunning = true
+			}
+		}
+		// change pod status back to "Running" if there is at least one container still reporting as "Running" status
+		if reason == "Completed" && hasRunning {
+			reason = "Running"
+		}
+	}
+	if pod.DeletionTimestamp != nil && pod.Status.Reason == "NodeLost" {
+		reason = "Unknown"
+	} else if pod.DeletionTimestamp != nil {
+		reason = "Terminating"
+	}
+	return reason
+}
+
+func isIgnoredContainer(pod *v1.Pod, c string) bool {
+	if c == "" || pod == nil {
+		return true
+	}
+
+	for _, c := range pod.Spec.Containers {
+		for _, env := range c.Env {
+			if env.Name == "SIGMA_IGNORE_READY" {
+				return true
+			}
+		}
+	}
 	return false
 }
