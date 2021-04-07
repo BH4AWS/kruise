@@ -779,7 +779,7 @@ func isDiffUpdateDisabled() bool {
 }
 
 func (c *asiControl) isPublishSuccess(status *appsv1alpha1.CloneSetStatus, pod *v1.Pod) bool {
-	if clonesetutils.GetPodRevision("", pod) != status.UpdateRevision {
+	if !clonesetutils.EqualToRevisionHash("", pod, status.UpdateRevision) {
 		return false
 	}
 
