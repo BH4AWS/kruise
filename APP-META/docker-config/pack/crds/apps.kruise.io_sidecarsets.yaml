@@ -93,7 +93,16 @@ spec:
                     description: 'sidecarContainer upgrade strategy, include: ColdUpgrade,
                       HotUpgrade'
                     properties:
+                      hotUpgradeEmptyImage:
+                        description: when HotUpgrade, HotUpgradeEmptyImage is used
+                          to complete the hot upgrading process HotUpgradeEmptyImage
+                          is consistent of sidecar container in Command, Args, Liveness
+                          probe, etc. but it does no actual work.
+                        type: string
                       upgradeType:
+                        description: when sidecar container is stateless, use ColdUpgrade
+                          otherwise HotUpgrade are more HotUpgrade. examples for istio
+                          envoy container is suitable for HotUpgrade default is ColdUpgrade
                         type: string
                     type: object
                 type: object
@@ -137,7 +146,16 @@ spec:
                     description: 'sidecarContainer upgrade strategy, include: ColdUpgrade,
                       HotUpgrade'
                     properties:
+                      hotUpgradeEmptyImage:
+                        description: when HotUpgrade, HotUpgradeEmptyImage is used
+                          to complete the hot upgrading process HotUpgradeEmptyImage
+                          is consistent of sidecar container in Command, Args, Liveness
+                          probe, etc. but it does no actual work.
+                        type: string
                       upgradeType:
+                        description: when sidecar container is stateless, use ColdUpgrade
+                          otherwise HotUpgrade are more HotUpgrade. examples for istio
+                          envoy container is suitable for HotUpgrade default is ColdUpgrade
                         type: string
                     type: object
                 type: object
@@ -191,8 +209,8 @@ spec:
                   type: object
               type: object
             updateStrategy:
-              description: The sidecarset strategy to use to replace existing pods
-                with new ones.
+              description: The sidecarset updateStrategy to use to replace existing
+                pods with new ones.
               properties:
                 maxUnavailable:
                   anyOf:
