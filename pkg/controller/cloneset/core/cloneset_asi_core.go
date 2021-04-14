@@ -878,15 +878,17 @@ func parsePodReason(pod *v1.Pod) string {
 	return reason
 }
 
-func isIgnoredContainer(pod *v1.Pod, c string) bool {
-	if c == "" || pod == nil {
+func isIgnoredContainer(pod *v1.Pod, name string) bool {
+	if name == "" || pod == nil {
 		return true
 	}
 
 	for _, c := range pod.Spec.Containers {
-		for _, env := range c.Env {
-			if env.Name == "SIGMA_IGNORE_READY" {
-				return true
+		if c.Name == name {
+			for _, env := range c.Env {
+				if env.Name == "SIGMA_IGNORE_READY" {
+					return true
+				}
 			}
 		}
 	}
