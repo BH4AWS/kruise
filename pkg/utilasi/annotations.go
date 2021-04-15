@@ -2,10 +2,10 @@ package utilasi
 
 import (
 	"encoding/json"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	sigmak8sapi "gitlab.alibaba-inc.com/sigma/sigma-k8s-api/pkg/api"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/kubernetes/pkg/util/slice"
 )
 
 func GetPodSpecHash(pod *v1.Pod) string {
@@ -34,11 +34,13 @@ func IsPodSpecHashConsistent(pod *v1.Pod) bool {
 	return IsPodSpecHashPartConsistent(pod, nil)
 }
 
-func IsPodSpecHashPartConsistent(pod *v1.Pod, ignoreContainers []string) bool {
+// 1. containers为空时，判断pod中的所有容器
+// 2. containers包含值时，只判断containers
+func IsPodSpecHashPartConsistent(pod *v1.Pod, containers sets.String) bool {
 	podSpecHash := GetPodSpecHash(pod)
 	containerSpecHashes := GetPodUpdatedSpecHashes(pod)
 	for _, c := range pod.Spec.Containers {
-		if slice.ContainsString(ignoreContainers, c.Name, nil) {
+		if containers.Len() > 0 && !containers.Has(c.Name) {
 			continue
 		}
 		if containerSpecHashes[c.Name] != podSpecHash {
@@ -70,4 +72,8 @@ func IsContainerStateSpecAllRunning(containerStateSpec *sigmak8sapi.ContainerSta
 		}
 	}
 	return true
+}
+
+func IsPodInplaceUpgrading(pod, oldPod *v1.Pod) bool {
+	return pod.Annotations[sigmak8sapi.AnnotationPodSpecHash] != oldPod.Annotations[sigmak8sapi.AnnotationPodSpecHash]
 }

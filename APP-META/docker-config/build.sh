@@ -28,4 +28,5 @@ GIT_VERSION_SHORT=$(git rev-parse --verify HEAD --short)
 ARCH=$(uname -m)
 DATE=$(TZ=Asia/Shanghai date '+%Y%m%d%H%M')
 version=${CODE_BRANCH}_${ARCH}_${GIT_VERSION_SHORT}_${DATE}
+version=$(echo ${version} |sed -e 's/\//_/g')
 sed -i "s/docker.tag=.*/docker.tag=${version}/" kruise.release

@@ -69,5 +69,8 @@ type SidecarControl interface {
 }
 
 func New(cs *appsv1alpha1.SidecarSet) SidecarControl {
+	if cs.Labels[LabelSidecarSetMode] == SidecarSetASI {
+		return &asiControl{SidecarSet: cs}
+	}
 	return &commonControl{SidecarSet: cs}
 }
