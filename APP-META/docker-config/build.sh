@@ -11,7 +11,6 @@ go env
 #make manifests 1>&2
 CGO_ENABLED=0 go build -mod=vendor -a -o APP-META/docker-config/pack/bins/kruise-manager main.go
 CGO_ENABLED=0 go build -mod=vendor -a -o APP-META/docker-config/pack/bins/kruise-daemon ./cmd/daemon
-CGO_ENABLED=0 go build -mod=vendor -a -o APP-META/docker-config/pack/bins/kruise-imagepuller ./cmd/imagepuller
 
 # package
 wget -P APP-META/docker-config/pack/bins/ http://iops.oss-cn-hangzhou-zmf.aliyuncs.com/kubectl/1.14/kubectl
