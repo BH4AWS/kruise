@@ -38,7 +38,7 @@ func CreateJobForWorkload(c client.Client, owner metav1.Object, gvk schema.Group
 		}
 	}
 
-	parallelism := intstr.FromInt(1)
+	parallelism := intstr.FromInt(3)
 	if str, ok := owner.GetAnnotations()[appsv1alpha1.ImagePreDownloadParallelismKey]; ok {
 		if i, err := strconv.Atoi(str); err == nil {
 			parallelism = intstr.FromInt(i)
