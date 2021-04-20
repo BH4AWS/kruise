@@ -4,13 +4,12 @@
 # 构建源码语言类型
 code.language=go
 
-# 构建使用的go语言版本
-build.tools.go=1.14.1
-
 # 构建
 build.command=APP-META/docker-config/build.sh
 build.output=APP-META/docker-config/
 build.tools.docker.args=--net host
+build.image="golang:1.15"
 
 # 镜像带 commitId 方便回溯代码版本
-docker.tag=${TIMESTAMP}_${CODE_BRANCH_COMMIT_ID}
+#docker.tag=${TIMESTAMP}_${CODE_BRANCH_COMMIT_ID}
+docker.tag=${CODE_BRANCH}_${TIMESTAMP}
