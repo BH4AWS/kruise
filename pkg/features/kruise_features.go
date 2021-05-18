@@ -124,7 +124,7 @@ var defaultFeatureGates = map[featuregate.Feature]featuregate.FeatureSpec{
 	KruisePodReadinessGate:                    {Default: true, PreRelease: featuregate.Alpha},
 	PreDownloadImageForInPlaceUpdate:          {Default: true, PreRelease: featuregate.Alpha},
 	CloneSetPartitionRollback:                 {Default: false, PreRelease: featuregate.Alpha},
-	ResourcesDeletionProtection:               {Default: false, PreRelease: featuregate.Alpha},
+	ResourcesDeletionProtection:               {Default: true, PreRelease: featuregate.Alpha},
 	WorkloadSpread:                            {Default: false, PreRelease: featuregate.Alpha},
 	PodUnavailableBudgetDeleteGate:            {Default: false, PreRelease: featuregate.Alpha},
 	PodUnavailableBudgetUpdateGate:            {Default: false, PreRelease: featuregate.Alpha},

@@ -4,166 +4,255 @@ metadata:
   creationTimestamp: null
   name: kruise-validating-webhook-configuration
 webhooks:
-  - clientConfig:
-      caBundle: Cg==
-      service:
-        name: kruise-webhook-service
-        namespace: kube-system
-        path: /validate-apps-kruise-io-v1alpha1-broadcastjob
-    failurePolicy: Fail
-    name: vbroadcastjob.kb.io
-    rules:
-      - apiGroups:
-          - apps.kruise.io
-        apiVersions:
-          - v1alpha1
-        operations:
-          - CREATE
-          - UPDATE
-        resources:
-          - broadcastjobs
-  - clientConfig:
-      caBundle: Cg==
-      service:
-        name: kruise-webhook-service
-        namespace: kube-system
-        path: /validate-apps-kruise-io-v1alpha1-cloneset
-    failurePolicy: Fail
-    name: vcloneset.kb.io
-    rules:
-      - apiGroups:
-          - apps.kruise.io
-        apiVersions:
-          - v1alpha1
-        operations:
-          - CREATE
-          - UPDATE
-        resources:
-          - clonesets
-  - clientConfig:
-      caBundle: Cg==
-      service:
-        name: kruise-webhook-service
-        namespace: kube-system
-        path: /validate-apps-kruise-io-v1alpha1-sidecarset
-    failurePolicy: Fail
-    name: vsidecarset.kb.io
-    rules:
-      - apiGroups:
-          - apps.kruise.io
-        apiVersions:
-          - v1alpha1
-        operations:
-          - CREATE
-          - UPDATE
-        resources:
-          - sidecarsets
-  - clientConfig:
-      caBundle: Cg==
-      service:
-        name: kruise-webhook-service
-        namespace: kube-system
-        path: /validate-apps-kruise-io-statefulset
-    failurePolicy: Fail
-    name: vstatefulset.kb.io
-    rules:
-      - apiGroups:
-          - apps.kruise.io
-        apiVersions:
-          - v1alpha1
-          - v1beta1
-        operations:
-          - CREATE
-          - UPDATE
-        resources:
-          - statefulsets
-  - clientConfig:
-      caBundle: Cg==
-      service:
-        name: kruise-webhook-service
-        namespace: kube-system
-        path: /validate-apps-kruise-io-v1alpha1-uniteddeployment
-    failurePolicy: Fail
-    name: vuniteddeployment.kb.io
-    rules:
-      - apiGroups:
-          - apps.kruise.io
-        apiVersions:
-          - v1alpha1
-        operations:
-          - CREATE
-          - UPDATE
-        resources:
-          - uniteddeployments
-  - clientConfig:
-      caBundle: Cg==
-      service:
-        name: kruise-webhook-service
-        namespace: kube-system
-        path: /validate-apps-kruise-io-v1alpha1-daemonset
-    failurePolicy: Fail
-    name: vdaemonset.kb.io
-    rules:
-      - apiGroups:
-          - apps.kruise.io
-        apiVersions:
-          - v1alpha1
-        operations:
-          - CREATE
-          - UPDATE
-        resources:
-          - daemonsets
-  - clientConfig:
-      caBundle: Cg==
-      service:
-        name: kruise-webhook-service
-        namespace: kruise-system
-        path: /validate-apps-kruise-io-v1alpha1-advancedcronjob
-    failurePolicy: Fail
-    name: vadvancedcronjob.kb.io
-    rules:
-      - apiGroups:
-          - apps.kruise.io
-        apiVersions:
-          - v1alpha1
-        operations:
-          - CREATE
-          - UPDATE
-        resources:
-          - advancedcronjobs
-  - clientConfig:
-      caBundle: Cg==
-      service:
-        name: webhook-service
-        namespace: system
-        path: /validate-apps-kruise-io-v1alpha1-imagepulljob
-    failurePolicy: Fail
-    name: vimagepulljob.kb.io
-    rules:
-      - apiGroups:
-          - apps.kruise.io
-        apiVersions:
-          - v1alpha1
-        operations:
-          - CREATE
-          - UPDATE
-        resources:
-          - imagepulljobs
-  - clientConfig:
-      caBundle: Cg==
-      service:
-        name: webhook-service
-        namespace: system
-        path: /validate-apps-kruise-io-v1alpha1-nodeimage
-    failurePolicy: Fail
-    name: vnodeimage.kb.io
-    rules:
-      - apiGroups:
-          - apps.kruise.io
-        apiVersions:
-          - v1alpha1
-        operations:
-          - CREATE
-          - UPDATE
-        resources:
-          - nodeimages
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-apps-kruise-io-v1alpha1-advancedcronjob
+  failurePolicy: Fail
+  name: vadvancedcronjob.kb.io
+  rules:
+  - apiGroups:
+    - apps.kruise.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - advancedcronjobs
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-apps-kruise-io-v1alpha1-broadcastjob
+  failurePolicy: Fail
+  name: vbroadcastjob.kb.io
+  rules:
+  - apiGroups:
+    - apps.kruise.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - broadcastjobs
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-apps-deployment
+  failurePolicy: Fail
+  name: vbuiltindeployment.kb.io
+  rules:
+  - apiGroups:
+    - apps
+    apiVersions:
+    - v1
+    operations:
+    - DELETE
+    resources:
+    - deployments
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-apps-replicaset
+  failurePolicy: Fail
+  name: vbuiltinreplicaset.kb.io
+  rules:
+  - apiGroups:
+    - apps
+    apiVersions:
+    - v1
+    operations:
+    - DELETE
+    resources:
+    - replicasets
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-apps-statefulset
+  failurePolicy: Fail
+  name: vbuiltinstatefulset.kb.io
+  rules:
+  - apiGroups:
+    - apps
+    apiVersions:
+    - v1
+    operations:
+    - DELETE
+    resources:
+    - statefulsets
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-apps-kruise-io-v1alpha1-cloneset
+  failurePolicy: Fail
+  name: vcloneset.kb.io
+  rules:
+  - apiGroups:
+    - apps.kruise.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - clonesets
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-customresourcedefinition
+  failurePolicy: Fail
+  name: vcustomresourcedefinition.kb.io
+  rules:
+  - apiGroups:
+    - apiextensions.k8s.io
+    apiVersions:
+    - v1
+    - v1beta1
+    operations:
+    - DELETE
+    resources:
+    - customresourcedefinitions
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-apps-kruise-io-v1alpha1-daemonset
+  failurePolicy: Fail
+  name: vdaemonset.kb.io
+  rules:
+  - apiGroups:
+    - apps.kruise.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - daemonsets
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-apps-kruise-io-v1alpha1-imagepulljob
+  failurePolicy: Fail
+  name: vimagepulljob.kb.io
+  rules:
+  - apiGroups:
+    - apps.kruise.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - imagepulljobs
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-namespace
+  failurePolicy: Fail
+  name: vnamespace.kb.io
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - DELETE
+    resources:
+    - namespaces
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-apps-kruise-io-v1alpha1-nodeimage
+  failurePolicy: Fail
+  name: vnodeimage.kb.io
+  rules:
+  - apiGroups:
+    - apps.kruise.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - nodeimages
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-apps-kruise-io-v1alpha1-sidecarset
+  failurePolicy: Fail
+  name: vsidecarset.kb.io
+  rules:
+  - apiGroups:
+    - apps.kruise.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - sidecarsets
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-apps-kruise-io-statefulset
+  failurePolicy: Fail
+  name: vstatefulset.kb.io
+  rules:
+  - apiGroups:
+    - apps.kruise.io
+    apiVersions:
+    - v1alpha1
+    - v1beta1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - statefulsets
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-apps-kruise-io-v1alpha1-uniteddeployment
+  failurePolicy: Fail
+  name: vuniteddeployment.kb.io
+  rules:
+  - apiGroups:
+    - apps.kruise.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - uniteddeployments
