@@ -47,7 +47,8 @@ const (
 	EnvIgnorePodReady       = "SIGMA_IGNORE_READY"
 	IgnorePodReadyValueTrue = "true"
 	//proxy kruise to asi
-	SidecarSetProxyLabels = "sidecarset.kruise.io/proxy"
+	SidecarSetProxyLabels               = "sidecarset.kruise.io/proxy"
+	SidecarSetMigrationStateAnnotations = "sidecarset.kruise.io/migration-state"
 )
 
 type asiControl struct {
@@ -60,15 +61,45 @@ func (c *asiControl) GetSidecarset() *appsv1alpha1.SidecarSet {
 
 func (c *asiControl) IsActiveSidecarSet() bool {
 	//proxy kruise to asi
-	return c.GetSidecarset().Labels[SidecarSetProxyLabels] != "true"
+	return c.GetSidecarset().Labels[SidecarSetProxyLabels] != "true" &&
+		c.GetSidecarset().Annotations[SidecarSetMigrationStateAnnotations] != "running"
 }
 
-func (c *asiControl) UpdateSidecarContainerToLatest(containerInSidecarSet, containerInPod v1.Container) v1.Container {
-	containerInSidecarSet.Name = containerInPod.Name
-	utilasi.MergeEnvsInContainer(&containerInSidecarSet, containerInPod)
-	util.MergeVolumeMountsInContainer(&containerInSidecarSet, containerInPod)
-	setSidecarContainerVersionEnv(&containerInSidecarSet)
-	return containerInSidecarSet
+func (c *asiControl) UpgradeSidecarContainer(sidecarContainer *appsv1alpha1.SidecarContainer, pod *v1.Pod) *v1.Container {
+	var nameToUpgrade, otherContainer, beforeJson string
+	var isDadiImage bool
+	if IsHotUpgradeContainer(sidecarContainer) {
+		nameToUpgrade, otherContainer = findContainerToHotUpgrade(sidecarContainer, pod, c)
+		oldContainer := util.GetContainer(otherContainer, pod).DeepCopy()
+		oldContainer.Name = nameToUpgrade
+		//兼容dadi镜像场景
+		isDadiImage = utilasi.IsDadiImageName(oldContainer.Image)
+		beforeJson = dumpJsonContainerForCompare(isDadiImage, oldContainer)
+	} else {
+		nameToUpgrade = sidecarContainer.Name
+		oldContainer := util.GetContainer(nameToUpgrade, pod).DeepCopy()
+		//兼容dadi镜像场景
+		isDadiImage = utilasi.IsDadiImageName(oldContainer.Image)
+		beforeJson = dumpJsonContainerForCompare(isDadiImage, oldContainer)
+	}
+
+	// create new container
+	newContainer := sidecarContainer.Container.DeepCopy()
+	containerInPod := util.GetContainer(nameToUpgrade, pod)
+	newContainer.Name = containerInPod.Name
+	utilasi.MergeEnvsInContainer(newContainer, *containerInPod)
+	util.MergeVolumeMountsInContainer(newContainer, *containerInPod)
+	if IsHotUpgradeContainer(sidecarContainer) {
+		// 兼容 SIDECARSET_VERSION value的场景
+		setSidecarContainerVersionEnv(newContainer)
+	}
+	afterJson := dumpJsonContainerForCompare(isDadiImage, newContainer.DeepCopy())
+	// sidecar container no changed
+	if beforeJson == afterJson {
+		return nil
+	}
+	klog.V(3).Infof("upgrade pod(%s/%s) container(%s) from(%s) -> to(%s)", pod.Namespace, pod.Name, nameToUpgrade, beforeJson, afterJson)
+	return newContainer
 }
 
 func (c *asiControl) NeedToInjectVolumeMount(volumeMount v1.VolumeMount) bool {
@@ -195,7 +226,7 @@ func (c *asiControl) IsPodReady(pod *v1.Pod) bool {
 	return true
 }
 
-func (c *asiControl) IsPodUpdatedConsistently(pod *v1.Pod, sidecarContainers sets.String) bool {
+func (c *asiControl) IsPodStateConsistent(pod *v1.Pod, sidecarContainers sets.String) bool {
 	if !utilasi.IsPodSpecHashPartConsistent(pod, sidecarContainers) {
 		return false
 	}
@@ -420,4 +451,34 @@ func setSidecarContainerVersionEnv(container *v1.Container) {
 		},
 	})
 	container.Env = envs
+}
+
+func dumpJsonContainerForCompare(isDadiImage bool, container *v1.Container) string {
+	// 如果是dadi镜像，因为dadi镜像是不可逆转的，所以需要将tag之前的地址都去掉，只比较tag即可
+	// 目前主要用在sidecarset场景下，其它场景如果需要使用的话，请着重考虑
+	if isDadiImage {
+		_, tag, _, err := util.ParseImage(container.Image)
+		if err != nil {
+			klog.Errorf("parse container(%s) image(%s) failed: %s", container.Name, container.Image, err.Error())
+		} else {
+			container.Image = tag
+		}
+		// 最新的dadi格式是在tag的最后面增加_dadi字符串,
+		// 这种场景下不需要其它的容器再转换，只将此image的后缀"_dadi"去掉即可
+	} else if strings.HasSuffix(container.Image, utilasi.RunTypeSuffix) {
+		strings.TrimRight(container.Image, utilasi.RunTypeSuffix)
+	}
+
+	// 场景：存量的container中env SidecarSetVersion不是downward api的方式，在更新时，转换为downward api
+	// 兼容上面两种情况，所以过滤掉SidecarSetVersion、SidecarSetVersionAlt
+	envs := make([]v1.EnvVar, 0)
+	for _, env := range container.Env {
+		if env.Name == SidecarSetVersionEnvKey || env.Name == SidecarSetVersionAltEnvKey {
+			continue
+		}
+		envs = append(envs, env)
+	}
+	container.Env = envs
+
+	return util.DumpJSON(container)
 }
