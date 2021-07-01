@@ -249,6 +249,15 @@ func (c *asiControl) newVersionedPods(cs *appsv1alpha1.CloneSet, revision string
 	return newPods
 }
 
+func (c *asiControl) GetPodSpreadConstraint() []clonesetutils.PodSpreadConstraint {
+	// TODO: get Spread Constraints from scheduling.alibabacloud.com/v1beta1 PodConstraint
+	var constraints []clonesetutils.PodSpreadConstraint
+	for _, c := range c.Spec.Template.Spec.TopologySpreadConstraints {
+		constraints = append(constraints, clonesetutils.PodSpreadConstraint{TopologyKey: c.TopologyKey})
+	}
+	return constraints
+}
+
 func (c *asiControl) GetPodsSortFunc(pods []*v1.Pod, waitUpdateIndexes []int) func(i, j int) bool {
 	// not-ready < ready, unscheduled < scheduled, and pending < running
 	return func(i, j int) bool {
