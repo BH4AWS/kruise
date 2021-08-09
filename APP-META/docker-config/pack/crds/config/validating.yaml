@@ -256,3 +256,78 @@ webhooks:
     - DELETE
     resources:
     - uniteddeployments
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-pod
+  failurePolicy: Fail
+  name: vpod.kb.io
+  namespaceSelector:
+    matchExpressions:
+    - key: control-plane
+      operator: DoesNotExist
+  objectSelector:
+    matchExpressions:
+      - key: component
+        operator: NotIn
+        values:
+        - kruise-manager
+        - asi-extensions-webhook
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - UPDATE
+    - DELETE
+    resources:
+    - pods
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-pod
+  failurePolicy: Fail
+  name: vpodeviction.kb.io
+  namespaceSelector:
+    matchExpressions:
+    - key: control-plane
+      operator: DoesNotExist
+  objectSelector:
+    matchExpressions:
+      - key: component
+        operator: NotIn
+        values:
+        - kruise-manager
+        - asi-extensions-webhook
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods/eviction
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: kruise-webhook-service
+      namespace: kruise-system
+      path: /validate-policy-kruise-io-podunavailablebudget
+  failurePolicy: Fail
+  name: vpodunavailablebudget.kb.io
+  rules:
+  - apiGroups:
+    - policy.kruise.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - podunavailablebudgets

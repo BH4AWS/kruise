@@ -118,7 +118,7 @@ const (
 var defaultFeatureGates = map[featuregate.Feature]featuregate.FeatureSpec{
 	PodWebhook:        {Default: true, PreRelease: featuregate.Beta},
 	KruiseDaemon:      {Default: true, PreRelease: featuregate.Beta},
-	DaemonWatchingPod: {Default: true, PreRelease: featuregate.Beta},
+	DaemonWatchingPod: {Default: false, PreRelease: featuregate.Beta},
 
 	CloneSetShortHash:                         {Default: false, PreRelease: featuregate.Alpha},
 	KruisePodReadinessGate:                    {Default: true, PreRelease: featuregate.Alpha},
@@ -126,7 +126,7 @@ var defaultFeatureGates = map[featuregate.Feature]featuregate.FeatureSpec{
 	CloneSetPartitionRollback:                 {Default: false, PreRelease: featuregate.Alpha},
 	ResourcesDeletionProtection:               {Default: true, PreRelease: featuregate.Alpha},
 	WorkloadSpread:                            {Default: false, PreRelease: featuregate.Alpha},
-	PodUnavailableBudgetDeleteGate:            {Default: false, PreRelease: featuregate.Alpha},
+	PodUnavailableBudgetDeleteGate:            {Default: true, PreRelease: featuregate.Alpha},
 	PodUnavailableBudgetUpdateGate:            {Default: false, PreRelease: featuregate.Alpha},
 	TemplateNoDefaults:                        {Default: false, PreRelease: featuregate.Alpha},
 	InPlaceUpdateEnvFromMetadata:              {Default: false, PreRelease: featuregate.Alpha},
