@@ -41,8 +41,11 @@ import (
 	apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	utilrand "k8s.io/apimachinery/pkg/util/rand"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/klog"
 	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
@@ -250,12 +253,55 @@ func (c *asiControl) newVersionedPods(cs *appsv1alpha1.CloneSet, revision string
 }
 
 func (c *asiControl) GetPodSpreadConstraint() []clonesetutils.PodSpreadConstraint {
-	// TODO: get Spread Constraints from scheduling.alibabacloud.com/v1beta1 PodConstraint
 	var constraints []clonesetutils.PodSpreadConstraint
+
+	if constraintName, ok := c.Spec.Template.Labels[apiinternal.LabelPodConstraintName]; ok {
+		unstructuredObj := unstructured.Unstructured{}
+		unstructuredObj.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   "scheduling.alibabacloud.com",
+			Version: "v1beta1",
+			Kind:    "PodConstraint",
+		})
+		if err := gClient.Get(context.TODO(), types.NamespacedName{Namespace: c.Namespace, Name: constraintName}, &unstructuredObj); err != nil {
+			klog.Errorf("Failed to get PodConstraint %s for CloneSet %s/%s: %v", constraintName, c.Namespace, c.Name, err)
+			return nil
+		}
+
+		jsonBytes, _ := unstructuredObj.MarshalJSON()
+		constraintObj := apiinternal.PodConstraint{}
+		if err := json.Unmarshal(jsonBytes, &constraintObj); err != nil {
+			klog.Errorf("Failed to unmarshal PodConstraint %s for CloneSet %s/%s: %v, json: %v", constraintName, c.Namespace, c.Name, err, string(jsonBytes))
+			return nil
+		}
+
+		ruleItems := append(constraintObj.Spec.SpreadRule.Requires, constraintObj.Spec.SpreadRule.Affinities...)
+		existingTopologyKey := sets.NewString()
+		for _, rule := range ruleItems {
+			if existingTopologyKey.Has(rule.TopologyKey) {
+				continue
+			}
+			existingTopologyKey.Insert(rule.TopologyKey)
+			constraints = append(constraints, convertConstraintRule(rule))
+		}
+
+		klog.V(3).Infof("Get spread constraints for ASI CloneSet %s/%s (%s): %v", c.Namespace, c.Name, constraintName, util.DumpJSON(constraints))
+		return constraints
+	}
+
 	for _, c := range c.Spec.Template.Spec.TopologySpreadConstraints {
 		constraints = append(constraints, clonesetutils.PodSpreadConstraint{TopologyKey: c.TopologyKey})
 	}
 	return constraints
+}
+
+func convertConstraintRule(rule apiinternal.SpreadRuleItem) clonesetutils.PodSpreadConstraint {
+	c := clonesetutils.PodSpreadConstraint{TopologyKey: rule.TopologyKey}
+	if rule.PodSpreadType == apiinternal.PodSpreadTypeRatio {
+		for _, ratio := range rule.TopologyRatios {
+			c.LimitedValues = append(c.LimitedValues, ratio.TopologyValue)
+		}
+	}
+	return c
 }
 
 func (c *asiControl) GetPodsSortFunc(pods []*v1.Pod, waitUpdateIndexes []int) func(i, j int) bool {

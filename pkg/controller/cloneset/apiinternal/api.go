@@ -39,6 +39,8 @@ const (
 	AnnotationAppsPublishId          = "apps.alibabacloud.com/publish-id"
 	LabelRolloutId                   = "apps.kruise.io/rollout-id"
 	LabelRolloutBatchId              = "apps.kruise.io/rollout-batch-id"
+
+	LabelPodConstraintName = "alibabacloud.com/pod-constraint-name"
 )
 
 const (
