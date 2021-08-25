@@ -17,7 +17,10 @@ limitations under the License.
 package apps
 
 import (
+	"context"
 	"fmt"
+	"time"
+
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
@@ -34,7 +37,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	clientset "k8s.io/client-go/kubernetes"
 	utilpointer "k8s.io/utils/pointer"
-	"time"
 )
 
 var _ = SIGDescribe("sidecarset-asi", func() {
@@ -502,7 +504,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 					},
 				},
 			}
-			_, err = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Update(cloneset)
+			_, err = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Update(context.TODO(), cloneset, metav1.UpdateOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			time.Sleep(time.Second * 10)
 
@@ -517,7 +519,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// update sidecarSet annotations
 			// get latest sidecarSet
 			ginkgo.By(fmt.Sprintf("update sidecarSet(%s) add annotations", sidecarSet.Name))
-			sidecarSet, _ = kc.AppsV1alpha1().SidecarSets().Get(sidecarSet.Name, metav1.GetOptions{})
+			sidecarSet, _ = kc.AppsV1alpha1().SidecarSets().Get(context.TODO(), sidecarSet.Name, metav1.GetOptions{})
 			sidecarSet.Annotations = map[string]string{
 				sidecarcontrol.SidecarInjectOnInplaceUpdate: "true",
 			}
@@ -526,14 +528,14 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			// update cloneset spec container envs and inject sidecar container
 			ginkgo.By(fmt.Sprintf("in-place update cloneSet(%s.%s) for envs", cloneset.Namespace, cloneset.Name))
-			cloneset, _ = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Get(cloneset.Name, metav1.GetOptions{})
+			cloneset, _ = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Get(context.TODO(), cloneset.Name, metav1.GetOptions{})
 			cloneset.Spec.Template.Spec.Containers[0].Env = []corev1.EnvVar{
 				{
 					Name:  "TEST_ENV",
 					Value: "value-1",
 				},
 			}
-			_, err = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Update(cloneset)
+			_, err = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Update(context.TODO(), cloneset, metav1.UpdateOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			time.Sleep(time.Second * 10)
 
@@ -597,14 +599,14 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			// update cloneset main container envs, don't trigger upgrade sidecar container
 			ginkgo.By(fmt.Sprintf("in-place update cloneSet(%s.%s) for envs", cloneset.Namespace, cloneset.Name))
-			cloneset, _ = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Get(cloneset.Name, metav1.GetOptions{})
+			cloneset, _ = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Get(context.TODO(), cloneset.Name, metav1.GetOptions{})
 			cloneset.Spec.Template.Spec.Containers[0].Env = []corev1.EnvVar{
 				{
 					Name:  "TEST_ENV",
 					Value: "value-2",
 				},
 			}
-			_, err = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Update(cloneset)
+			_, err = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Update(context.TODO(), cloneset, metav1.UpdateOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			time.Sleep(time.Second * 10)
 			// check pods and sidecar container
@@ -621,7 +623,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// update cloneset spec container volume and upgrade sidecar container
 			ginkgo.By(fmt.Sprintf("in-place update cloneSet(%s.%s) for volumeMounts", cloneset.Namespace, cloneset.Name))
 			//get latest version cloneset object
-			cloneset, _ = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Get(cloneset.Name, metav1.GetOptions{})
+			cloneset, _ = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Get(context.TODO(), cloneset.Name, metav1.GetOptions{})
 			cloneset.Spec.Template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
 				{
 					Name:      "main-volume",
@@ -636,7 +638,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 					},
 				},
 			}
-			_, err = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Update(cloneset)
+			_, err = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Update(context.TODO(), cloneset, metav1.UpdateOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			time.Sleep(time.Second * 10)
 
@@ -699,14 +701,14 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// update sidecarSet image
 			newSidecarImage := "reg.docker.alibaba-inc.com/base/nginx:latest"
 			ginkgo.By(fmt.Sprintf("Update sidecarSet(%s) sidecar container image(%s)", sidecarSet.Name, newSidecarImage))
-			sidecarSet, _ = kc.AppsV1alpha1().SidecarSets().Get(sidecarSet.Name, metav1.GetOptions{})
+			sidecarSet, _ = kc.AppsV1alpha1().SidecarSets().Get(context.TODO(), sidecarSet.Name, metav1.GetOptions{})
 			sidecarSet.Spec.Containers[0].Image = newSidecarImage
 			tester.UpdateSidecarSet(sidecarSet)
 			time.Sleep(time.Second)
 
 			// update pods and newPods don't have sidecar containers
 			ginkgo.By(fmt.Sprintf("Update pod(%s.%s) main container envs", pod.Namespace, pod.Name))
-			newPod, err := c.CoreV1().Pods(pod.Namespace).Get(pod.Name, metav1.GetOptions{})
+			newPod, err := c.CoreV1().Pods(pod.Namespace).Get(context.TODO(), pod.Name, metav1.GetOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			newPod.Spec.Containers = newPod.Spec.Containers[1:2]
 			newPod.Spec.Containers[0].Env = append(newPod.Spec.Containers[0].Env, corev1.EnvVar{
@@ -720,7 +722,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			// check pods and have old sidecar containers
 			ginkgo.By(fmt.Sprintf("check newPod(%s.%s) have old sidecar container", pod.Namespace, pod.Name))
-			newPod, err = c.CoreV1().Pods(newPod.Namespace).Get(newPod.Name, metav1.GetOptions{})
+			newPod, err = c.CoreV1().Pods(newPod.Namespace).Get(context.TODO(), newPod.Name, metav1.GetOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(newPod.Spec.Containers).To(gomega.HaveLen(len(cloneset.Spec.Template.Spec.Containers) + len(sidecarSet.Spec.Containers)))
 			envVar := util.GetContainerEnvVar(&newPod.Spec.Containers[1], "TEST_ENV")
@@ -729,7 +731,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			// update pods and newPods don't have sidecar containers
 			ginkgo.By(fmt.Sprintf("Update pod(%s.%s) main container volumeMounts", pod.Namespace, pod.Name))
-			newPod, err = c.CoreV1().Pods(pod.Namespace).Get(pod.Name, metav1.GetOptions{})
+			newPod, err = c.CoreV1().Pods(pod.Namespace).Get(context.TODO(), pod.Name, metav1.GetOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			newPod.Spec.Containers = newPod.Spec.Containers[1:2]
 			newPod.Spec.Containers[0].VolumeMounts = append(newPod.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{
@@ -751,7 +753,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			// check pods and have new sidecar containers
 			ginkgo.By(fmt.Sprintf("check newPod(%s.%s) have new sidecar container", pod.Namespace, pod.Name))
-			newPod, err = c.CoreV1().Pods(newPod.Namespace).Get(newPod.Name, metav1.GetOptions{})
+			newPod, err = c.CoreV1().Pods(newPod.Namespace).Get(context.TODO(), newPod.Name, metav1.GetOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(newPod.Spec.Containers).To(gomega.HaveLen(len(cloneset.Spec.Template.Spec.Containers) + len(sidecarSet.Spec.Containers)))
 			vMounts := util.GetContainerVolumeMount(&newPod.Spec.Containers[1], "/main-volume")
@@ -802,7 +804,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			// update sidecarSet sidecar container
 			ginkgo.By(fmt.Sprintf("Update SidecarSet %s sidecar image", sidecarSetIn.Name))
-			sidecarSetIn, _ = kc.AppsV1alpha1().SidecarSets().Get(sidecarSetIn.Name, metav1.GetOptions{})
+			sidecarSetIn, _ = kc.AppsV1alpha1().SidecarSets().Get(context.TODO(), sidecarSetIn.Name, metav1.GetOptions{})
 			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx:latest"
 			tester.UpdateSidecarSet(sidecarSetIn)
 			time.Sleep(time.Second * 5)
@@ -849,7 +851,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			// update sidecarSet sidecar container failed image
 			ginkgo.By(fmt.Sprintf("update sidecarSet(%s) failed image", sidecarSetIn.Name))
-			sidecarSetIn, _ = kc.AppsV1alpha1().SidecarSets().Get(sidecarSetIn.Name, metav1.GetOptions{})
+			sidecarSetIn, _ = kc.AppsV1alpha1().SidecarSets().Get(context.TODO(), sidecarSetIn.Name, metav1.GetOptions{})
 			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:failed"
 			tester.UpdateSidecarSet(sidecarSetIn)
 			time.Sleep(time.Second * 30)
