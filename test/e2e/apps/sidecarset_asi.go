@@ -823,6 +823,19 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				gomega.Expect(sidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/base/nginx:latest"))
 			}
 
+			// sidecar name changed, not upgrade
+			ginkgo.By(fmt.Sprintf("Update SidecarSet %s sidecar container name", sidecarSetIn.Name))
+			sidecarSetIn, _ = kc.AppsV1alpha1().SidecarSets().Get(context.TODO(), sidecarSetIn.Name, metav1.GetOptions{})
+			sidecarSetIn.Spec.Containers[0].Name = "other-names"
+			tester.UpdateSidecarSet(sidecarSetIn)
+			time.Sleep(time.Second * 5)
+			except = &appsv1alpha1.SidecarSetStatus{
+				MatchedPods:      2,
+				UpdatedPods:      0,
+				UpdatedReadyPods: 0,
+				ReadyPods:        2,
+			}
+			tester.WaitForSidecarSetUpgradeComplete(sidecarSetIn, except)
 			ginkgo.By(fmt.Sprintf("sidecarSet upgrade cold sidecar container image done"))
 		})
 

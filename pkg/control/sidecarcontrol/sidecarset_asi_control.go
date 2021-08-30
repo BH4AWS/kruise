@@ -262,6 +262,7 @@ func (c *asiControl) IsPodStateConsistent(pod *v1.Pod, sidecarContainers sets.St
 }
 
 func (c *asiControl) IsSidecarSetUpgradable(pod *v1.Pod) bool {
+	sidecarSet := c.GetSidecarset()
 	// cStatus: container.name -> containerStatus.Ready
 	cStatus := map[string]bool{}
 	for _, status := range pod.Status.ContainerStatuses {
@@ -278,8 +279,28 @@ func (c *asiControl) IsSidecarSetUpgradable(pod *v1.Pod) bool {
 			return false
 		}
 	}
+	// If the sidecar container name changes, the Pod cannot be upgraded
+	if isSidecarContainersChanged(sidecarSet, pod) {
+		return false
+	}
 
 	return true
+}
+
+func isSidecarContainersChanged(sidecarSet *appsv1alpha1.SidecarSet, pod *v1.Pod) bool {
+	sidecarList := sets.NewString()
+	for _, sidecar := range sidecarSet.Spec.Containers {
+		sidecarList.Insert(sidecar.Name)
+	}
+	upgradeSpec := GetPodSidecarSetUpgradeSpecInAnnotations(sidecarSet.Name, SidecarSetHashAnnotation, pod)
+	// Compatible with scenarios where the old pods does not have this field
+	if len(upgradeSpec.SidecarList) > 0 {
+		containers := sets.NewString(upgradeSpec.SidecarList...)
+		if !reflect.DeepEqual(sidecarList.List(), containers.List()) {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *asiControl) IsPodAvailabilityChanged(pod, oldPod *v1.Pod) bool {
