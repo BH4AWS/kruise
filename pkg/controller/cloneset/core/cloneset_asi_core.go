@@ -61,6 +61,12 @@ var (
 	inPlaceUpdateTemplateSpecPatchASIRexp = regexp.MustCompile("^/spec/containers/([0-9]+)/(image|command|args|env|livenessProbe|readinessProbe|lifecycle)")
 )
 
+const (
+	annotationSafetyOutInjection = "pod.beta1.alibabacloud.com/enable-safety-out-injection"
+	labelSafetyOut               = "pod.beta1.alibabacloud.com/ali-safety-out"
+	envSafetyOut                 = "ali_safety_out"
+)
+
 func InitASI(c client.Client) {
 	gClient = c
 }
@@ -200,12 +206,14 @@ func (c *asiControl) newVersionedPods(cs *appsv1alpha1.CloneSet, revision string
 	}
 
 	var additionalEnvs []v1.EnvVar
+	var additionalLabels map[string]string
+
 	// TODO(jiuzhu): remove safetyout injection
 	inPlaceSetConfig, err := c.getInPlaceSetConfig(gClient)
 	if err != nil {
 		klog.Warningf("CloneSet %s/%s failed to get InPlaceSet config for newPod: %v", c.Namespace, c.Name, err)
 	} else if inPlaceSetConfig.EnableAliProcHook {
-		additionalEnvs = c.getAdditionalEnvs(&cs.Spec.Template.ObjectMeta, gClient)
+		additionalEnvs, additionalLabels = c.getAdditionalPodConfig(&cs.Spec.Template.ObjectMeta, gClient)
 	}
 
 	var newPods []*v1.Pod
@@ -243,6 +251,7 @@ func (c *asiControl) newVersionedPods(cs *appsv1alpha1.CloneSet, revision string
 		}
 
 		c.injectAdditionalEnvsIntoPod(pod, additionalEnvs, &cs.Spec.Template)
+		c.injectAdditionalLabelsIntoPod(pod, additionalLabels)
 
 		clonesetutils.UpdateStorage(cs, pod)
 
@@ -609,8 +618,9 @@ func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSp
 
 	pod.Annotations[apiinternal.AnnotationUpgradeSpec] = util.DumpJSON(upgradeSpec)
 	if setConfig != nil && setConfig.EnableAliProcHook {
-		additionalEnvs := c.getAdditionalEnvs(&pod.ObjectMeta, gClient)
+		additionalEnvs, additionalLabels := c.getAdditionalPodConfig(&pod.ObjectMeta, gClient)
 		c.injectAdditionalEnvsIntoPod(pod, additionalEnvs, &c.Spec.Template)
+		c.injectAdditionalLabelsIntoPod(pod, additionalLabels)
 	}
 
 	if publishId, ok := c.Annotations[apiinternal.AnnotationAppsPublishId]; ok {
@@ -780,26 +790,53 @@ func (c *asiControl) injectAdditionalEnvsIntoPod(pod *v1.Pod, envs []v1.EnvVar, 
 	}
 }
 
-func (c *asiControl) getAdditionalEnvs(objectMeta *metav1.ObjectMeta, reader client.Reader) []v1.EnvVar {
-	if objectMeta.Annotations[sigmak8sapi.AnnotationEnableAppRulesInjection] != "true" ||
-		objectMeta.Labels[sigmak8sapi.LabelInstanceGroup] == "" {
-		return nil
+func (c *asiControl) injectAdditionalLabelsIntoPod(pod *v1.Pod, labels map[string]string) {
+	if labels == nil {
+		return
+	}
+	for key, value := range labels {
+		pod.Labels[key] = value
+	}
+}
+
+func (c *asiControl) getAdditionalPodConfig(objectMeta *metav1.ObjectMeta, reader client.Reader) ([]v1.EnvVar, map[string]string) {
+	if !needAdditionalEnvs(objectMeta) && !needAdditionalLabels(objectMeta) {
+		return nil, nil
 	}
 	nodeGroup, err := skyline.QueryNodeGroupByName(reader, objectMeta.Labels[sigmak8sapi.LabelInstanceGroup])
 	if err != nil {
 		klog.Warningf("CloneSet %s/%s failed to query nodegroup for %v safetyout, err: %v",
 			c.Namespace, c.Name, objectMeta.Labels[sigmak8sapi.LabelInstanceGroup], err)
-		return nil
+		return nil, nil
 	} else if nodeGroup == nil {
 		klog.Warningf("CloneSet %s/%s failed to query nodegroup for %v safetyout, not found",
 			c.Namespace, c.Name, objectMeta.Labels[sigmak8sapi.LabelInstanceGroup])
-		return nil
+		return nil, nil
 	}
 	safetyOut := "0"
 	if nodeGroup.SafetyOut == 1 {
 		safetyOut = "1"
 	}
-	return []v1.EnvVar{{Name: "ali_safety_out", Value: safetyOut}}
+
+	var additionalEnvs = make([]v1.EnvVar, 0)
+	var additionalLabels = make(map[string]string)
+	if needAdditionalEnvs(objectMeta) {
+		additionalEnvs = append(additionalEnvs, v1.EnvVar{Name: envSafetyOut, Value: safetyOut})
+	}
+	if needAdditionalLabels(objectMeta) {
+		additionalLabels[labelSafetyOut] = safetyOut
+	}
+	return additionalEnvs, additionalLabels
+}
+
+func needAdditionalEnvs(objectMeta *metav1.ObjectMeta) bool {
+	return objectMeta.Annotations[sigmak8sapi.AnnotationEnableAppRulesInjection] == "true" &&
+		objectMeta.Labels[sigmak8sapi.LabelInstanceGroup] != ""
+}
+
+func needAdditionalLabels(objectMeta *metav1.ObjectMeta) bool {
+	return objectMeta.Annotations[annotationSafetyOutInjection] == "true" &&
+		objectMeta.Labels[sigmak8sapi.LabelInstanceGroup] != ""
 }
 
 func (c *asiControl) ValidateCloneSetUpdate(oldCS, newCS *appsv1alpha1.CloneSet) error {
