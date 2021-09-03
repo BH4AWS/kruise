@@ -843,6 +843,11 @@ func (c *asiControl) ValidateCloneSetUpdate(oldCS, newCS *appsv1alpha1.CloneSet)
 	isOldInPlaceOnly := oldCS.Spec.UpdateStrategy.Type == appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType
 	isNewInPlaceOnly := newCS.Spec.UpdateStrategy.Type == appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType
 	if isOldInPlaceOnly != isNewInPlaceOnly {
+		if newCS.Labels["cloneset.asi/mode"] == "asi" {
+			klog.Warningf("Currently we allow proxy CloneSet to change the update type. %s/%s from %s to %s.",
+				c.Namespace, c.Name, oldCS.Spec.UpdateStrategy.Type, newCS.Spec.UpdateStrategy.Type)
+			return nil
+		}
 		return fmt.Errorf("forbid to modified InPlaceOnly for CloneSet with asi mode")
 	}
 
