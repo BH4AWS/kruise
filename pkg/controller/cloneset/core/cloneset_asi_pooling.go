@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
@@ -21,9 +20,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
+	"k8s.io/client-go/util/retry"
 	"k8s.io/klog"
 	kubecontroller "k8s.io/kubernetes/pkg/controller"
 	"k8s.io/utils/integer"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (c *asiControl) createWithPooling(replicas int, revision string, poolConfig *appsv1alpha1.PoolConfig) (int, error) {
@@ -37,7 +38,7 @@ func (c *asiControl) createWithPooling(replicas int, revision string, poolConfig
 		pool := &poolConfig.Pools[i]
 		num := poolReplicas[pool.Name]
 
-		adopted, err := c.adoptPodsFromPool(num, revision, pool, poolConfig.PatchTemplate)
+		adopted, err := c.adoptPodsAndPVCsFromPool(num, revision, pool, poolConfig.PatchTemplate)
 		if len(adopted) > 0 {
 			allAdopted = append(allAdopted, adopted...)
 		}
@@ -53,33 +54,42 @@ func (c *asiControl) createWithPooling(replicas int, revision string, poolConfig
 	return len(allAdopted), nil
 }
 
-func (c *asiControl) adoptPodsFromPool(replicas int, revision string, pool *appsv1alpha1.PoolTerm, patchTemplate runtime.RawExtension) ([]*v1.Pod, error) {
+func (c *asiControl) adoptPodsAndPVCsFromPool(replicas int, revision string, pool *appsv1alpha1.PoolTerm, patchTemplate runtime.RawExtension) (adopted []*v1.Pod, retErr error) {
 	trueVal := true
 	podList := v1.PodList{}
 	if err := gClient.List(context.TODO(), &podList, client.InNamespace(c.Namespace), client.MatchingLabels(pool.MatchSelector)); err != nil {
 		return nil, err
 	}
 
-	var oldPod *v1.Pod
-	var adopted []*v1.Pod
+	defer func() {
+		if len(adopted) > 0 {
+			c.waitForInformerWatched(adopted[len(adopted)-1])
+		}
+	}()
 	for i := range podList.Items {
 		if !kubecontroller.IsPodActive(&podList.Items[i]) {
 			continue
 		}
-		oldPod = &podList.Items[i]
-		pod := oldPod.DeepCopy()
+		pod := podList.Items[i].DeepCopy()
 
-		// 1. 替换 owner
-		utilasi.ReplaceOwnerRef(pod, metav1.OwnerReference{
+		newOwner := metav1.OwnerReference{
 			APIVersion:         clonesetutils.ControllerKind.GroupVersion().String(),
 			Kind:               clonesetutils.ControllerKind.Kind,
 			Name:               c.Name,
 			UID:                c.UID,
 			Controller:         &trueVal,
 			BlockOwnerDeletion: &trueVal,
-		})
+		}
 
-		// 2. 更新固定信息
+		// 1. 接管 cloneset 配套创建的 pvc
+		if err := c.adoptPVCsForPod(pod, newOwner); err != nil {
+			return adopted, fmt.Errorf("failed to adopt pvc for Pod %s: %v", pod.Name, err)
+		}
+
+		// 2. 替换 owner
+		utilasi.ReplaceOwnerRef(pod, newOwner)
+
+		// 3. 更新固定信息
 		for k, v := range c.Spec.Selector.MatchLabels {
 			pod.Labels[k] = v
 		}
@@ -91,20 +101,20 @@ func (c *asiControl) adoptPodsFromPool(replicas int, revision string, pool *apps
 		pod.Labels[apps.StatefulSetRevisionLabel] = revision
 		pod.Annotations[sigmak8sapi.AnnotationPodSpecHash] = revision
 
-		// 3. 更新 patchTemplate
+		// 4. 更新 patchTemplate
 		if patchTemplate.Raw != nil {
 			cloneBytes, _ := json.Marshal(pod)
 			modified, err := strategicpatch.StrategicMergePatch(cloneBytes, patchTemplate.Raw, &v1.Pod{})
 			if err != nil {
-				return nil, err
+				return adopted, err
 			}
 			pod = &v1.Pod{}
 			if err = json.Unmarshal(modified, pod); err != nil {
-				return nil, err
+				return adopted, err
 			}
 		}
 
-		// 4. update pod
+		// 5. update pod
 		if err := gClient.Update(context.TODO(), pod); err != nil {
 			if errors.IsConflict(err) {
 				klog.Warningf("CloneSet %s/%s adopt pooling pod %s conflict", c.Namespace, c.Name, pod.Name)
@@ -118,11 +128,33 @@ func (c *asiControl) adoptPodsFromPool(replicas int, revision string, pool *apps
 			break
 		}
 	}
-	if oldPod != nil {
-		c.waitForInformerWatched(oldPod)
-	}
 
 	return adopted, nil
+}
+
+func (c *asiControl) adoptPVCsForPod(pod *v1.Pod, owner metav1.OwnerReference) error {
+	for i := range pod.Spec.Volumes {
+		vol := &pod.Spec.Volumes[i]
+		if vol.PersistentVolumeClaim == nil {
+			return nil
+		}
+		err := retry.RetryOnConflict(retry.DefaultBackoff, func() error {
+			pvc := &v1.PersistentVolumeClaim{}
+			err := gClient.Get(context.TODO(), types.NamespacedName{Namespace: pod.Namespace, Name: vol.PersistentVolumeClaim.ClaimName}, pvc)
+			if err != nil {
+				return err
+			}
+			if _, ok := pvc.Labels[appsv1alpha1.CloneSetInstanceID]; !ok {
+				return nil
+			}
+			utilasi.ReplaceOwnerRef(pvc, owner)
+			return gClient.Update(context.TODO(), pvc)
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (c *asiControl) waitForInformerWatched(oldPod *v1.Pod) {

@@ -17,7 +17,7 @@ limitations under the License.
 package utilasi
 
 import (
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -105,15 +105,15 @@ func AddContainerEnvNoOverwrite(container *v1.Container, key, value string) {
 	})
 }
 
-func ReplaceOwnerRef(pod *v1.Pod, owner metav1.OwnerReference) {
+func ReplaceOwnerRef(obj metav1.Object, owner metav1.OwnerReference) {
 	refs := []metav1.OwnerReference{owner}
-	for _, ref := range pod.OwnerReferences {
+	for _, ref := range obj.GetOwnerReferences() {
 		if ref.Controller != nil && *ref.Controller {
 			continue
 		}
 		refs = append(refs, ref)
 	}
-	pod.OwnerReferences = refs
+	obj.SetOwnerReferences(refs)
 }
 
 // 合并origin.Envs 和 other.Envs，并且将结果赋值到 origin.Envs
