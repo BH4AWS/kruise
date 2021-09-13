@@ -19,9 +19,6 @@ package mutating
 import (
 	"context"
 	"fmt"
-	sigmak8sapi "gitlab.alibaba-inc.com/sigma/sigma-k8s-api/pkg/api"
-	admissionv1beta1 "k8s.io/api/admission/v1beta1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
 	"testing"
 
@@ -29,7 +26,10 @@ import (
 	"github.com/openkruise/kruise/pkg/control/sidecarcontrol"
 	"github.com/openkruise/kruise/pkg/util"
 
+	sigmak8sapi "gitlab.alibaba-inc.com/sigma/sigma-k8s-api/pkg/api"
+	admissionv1 "k8s.io/api/admission/v1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -374,7 +374,7 @@ func TestNoUpdateSidecarDuringAppUpgrade(t *testing.T) {
 			oldPodRaw := runtime.RawExtension{
 				Raw: []byte(util.DumpJSON(oldPod)),
 			}
-			req := newAdmission(admissionv1beta1.Update, runtime.RawExtension{}, oldPodRaw, "")
+			req := newAdmission(admissionv1.Update, runtime.RawExtension{}, oldPodRaw, "")
 			err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 			if err != nil {
 				t.Fatalf("inject sidecar into pod failed, err: %v", err)
@@ -676,7 +676,7 @@ func TestTransferEnvDuringAppUpgrade(t *testing.T) {
 			oldPodRaw := runtime.RawExtension{
 				Raw: []byte(util.DumpJSON(oldPod)),
 			}
-			req := newAdmission(admissionv1beta1.Update, runtime.RawExtension{}, oldPodRaw, "")
+			req := newAdmission(admissionv1.Update, runtime.RawExtension{}, oldPodRaw, "")
 			err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 			if err != nil {
 				t.Fatalf("inject sidecar into pod failed, err: %v", err)
@@ -1064,7 +1064,7 @@ func TestShareMountsDuringUpgrade(t *testing.T) {
 			oldPodRaw := runtime.RawExtension{
 				Raw: []byte(util.DumpJSON(oldPod)),
 			}
-			req := newAdmission(admissionv1beta1.Update, runtime.RawExtension{}, oldPodRaw, "")
+			req := newAdmission(admissionv1.Update, runtime.RawExtension{}, oldPodRaw, "")
 			err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 			if err != nil {
 				t.Fatalf("inject sidecar into pod failed, err: %v", err)
@@ -1130,7 +1130,7 @@ func TestUpgradeSidecarWhenInplaceSetUpgrade(t *testing.T) {
 	oldPodRaw := runtime.RawExtension{
 		Raw: []byte(util.DumpJSON(oldPod)),
 	}
-	req := newAdmission(admissionv1beta1.Update, runtime.RawExtension{}, oldPodRaw, "")
+	req := newAdmission(admissionv1.Update, runtime.RawExtension{}, oldPodRaw, "")
 	err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 	if err != nil {
 		t.Fatalf("inject sidecar into pod failed, err: %v", err)
@@ -1179,7 +1179,7 @@ func TestUpgradeSidecarWhenCloneSetUpgrade(t *testing.T) {
 	oldPodRaw := runtime.RawExtension{
 		Raw: []byte(util.DumpJSON(oldPod)),
 	}
-	req := newAdmission(admissionv1beta1.Update, runtime.RawExtension{}, oldPodRaw, "")
+	req := newAdmission(admissionv1.Update, runtime.RawExtension{}, oldPodRaw, "")
 	err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 	if err != nil {
 		t.Fatalf("inject sidecar into pod failed, err: %v", err)
@@ -1231,7 +1231,7 @@ func TestUpgradeSidecarWhenSidecarSetUpgrade(t *testing.T) {
 	oldPodRaw := runtime.RawExtension{
 		Raw: []byte(util.DumpJSON(oldPod)),
 	}
-	req := newAdmission(admissionv1beta1.Update, runtime.RawExtension{}, oldPodRaw, "")
+	req := newAdmission(admissionv1.Update, runtime.RawExtension{}, oldPodRaw, "")
 	err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 	if err != nil {
 		t.Fatalf("inject sidecar into pod failed, err: %v", err)
@@ -1335,7 +1335,7 @@ func TestUpgradeSidecarWhenSidecarSetHotUpgrade(t *testing.T) {
 	oldPodRaw := runtime.RawExtension{
 		Raw: []byte(util.DumpJSON(oldPod)),
 	}
-	req := newAdmission(admissionv1beta1.Update, runtime.RawExtension{}, oldPodRaw, "")
+	req := newAdmission(admissionv1.Update, runtime.RawExtension{}, oldPodRaw, "")
 	err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 	if err != nil {
 		t.Fatalf("inject sidecar into pod failed, err: %v", err)

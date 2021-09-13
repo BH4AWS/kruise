@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
 # download kubebuilder
-if [[ $(which kubebuilder) == '' ]]; then
-    wget http://iops.oss-cn-hangzhou-zmf.aliyuncs.com/kuebuilder/2.3.0/kubebuilder_2.3.0_linux_amd64.tar.gz
-    tar -C /tmp -xzf kubebuilder_2.3.0_linux_amd64.tar.gz
-    export PATH=$PATH:/tmp/kubebuilder_2.3.0_linux_amd64/bin
-    export KUBEBUILDER_ASSETS=/tmp/kubebuilder_2.3.0_linux_amd64/bin
-    export KUBEBUILDER_CONTROLPLANE_START_TIMEOUT=300s
-fi
+mkdir -p /tmp/kubebuilder
+wget http://iops.oss-cn-hangzhou-zmf.aliyuncs.com/kuebuilder-tools/kubebuilder-tools-1.19.2-linux-amd64.tar.gz
+tar -C /tmp/kubebuilder --strip-components=1 -zvxf kubebuilder-tools-1.19.2-linux-amd64.tar.gz
+export PATH=/tmp/kubebuilder/bin:$PATH
+export KUBEBUILDER_ASSETS=/tmp/kubebuilder/bin
+export KUBEBUILDER_CONTROLPLANE_START_TIMEOUT=300s

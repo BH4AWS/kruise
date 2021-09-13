@@ -107,7 +107,7 @@ func TestReconcile(t *testing.T) {
 		cancel()
 		mgrStopped.Wait()
 	}()
-	mgr.GetCache().WaitForCacheSync(stopMgr)
+	mgr.GetCache().WaitForCacheSync(ctx)
 
 	// Create an orphan pod
 	orphanPod := v1.Pod{

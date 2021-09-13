@@ -1,11 +1,13 @@
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   creationTimestamp: null
   name: aaa-kruise-mutating-webhook-configuration
 webhooks:
-- clientConfig:
-    caBundle: Cg==
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
     service:
       name: kruise-webhook-service
       namespace: kruise-system
@@ -18,11 +20,11 @@ webhooks:
       operator: DoesNotExist
   objectSelector:
     matchExpressions:
-      - key: component
-        operator: NotIn
-        values:
-        - kruise-manager
-        - asi-extensions-webhook
+    - key: component
+      operator: NotIn
+      values:
+      - kruise-manager
+      - asi-extensions-webhook
   rules:
   - apiGroups:
     - ""
@@ -33,8 +35,11 @@ webhooks:
     - UPDATE
     resources:
     - pods
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
     service:
       name: kruise-webhook-service
       namespace: kruise-system
@@ -51,8 +56,11 @@ webhooks:
     - UPDATE
     resources:
     - advancedcronjobs
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
     service:
       name: kruise-webhook-service
       namespace: kruise-system
@@ -69,8 +77,11 @@ webhooks:
     - UPDATE
     resources:
     - broadcastjobs
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
     service:
       name: kruise-webhook-service
       namespace: kruise-system
@@ -87,8 +98,11 @@ webhooks:
     - UPDATE
     resources:
     - clonesets
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
     service:
       name: kruise-webhook-service
       namespace: kruise-system
@@ -105,8 +119,11 @@ webhooks:
     - UPDATE
     resources:
     - containerrecreaterequests
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
     service:
       name: kruise-webhook-service
       namespace: kruise-system
@@ -123,8 +140,11 @@ webhooks:
     - UPDATE
     resources:
     - daemonsets
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
     service:
       name: kruise-webhook-service
       namespace: kruise-system
@@ -141,8 +161,11 @@ webhooks:
     - UPDATE
     resources:
     - imagepulljobs
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
     service:
       name: kruise-webhook-service
       namespace: kruise-system
@@ -159,8 +182,11 @@ webhooks:
     - UPDATE
     resources:
     - nodeimages
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
     service:
       name: kruise-webhook-service
       namespace: kruise-system
@@ -177,8 +203,11 @@ webhooks:
     - UPDATE
     resources:
     - sidecarsets
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
     service:
       name: kruise-webhook-service
       namespace: kruise-system
@@ -196,8 +225,11 @@ webhooks:
     - UPDATE
     resources:
     - statefulsets
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
     service:
       name: kruise-webhook-service
       namespace: kruise-system
@@ -214,3 +246,4 @@ webhooks:
     - UPDATE
     resources:
     - uniteddeployments
+  sideEffects: None

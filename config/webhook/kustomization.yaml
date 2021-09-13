@@ -4,6 +4,7 @@ resources:
 
 patchesStrategicMerge:
 - patch_manifests.yaml
+- patch_asi_manifests.yaml
 
 configurations:
 - kustomizeconfig.yaml

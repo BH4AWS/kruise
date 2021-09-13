@@ -191,7 +191,7 @@ func detectRuntime(varRunPath string) (cfgs []runtimeConfig) {
 			klog.Errorf("%s/pouchd.sock exists, but not found %s/pouchcri.sock", varRunPath, varRunPath)
 		} else if err1 != nil && err2 == nil {
 			klog.Errorf("%s/pouchdcri.sock exists, but not found %s/pouchd.sock, checking if it is containerd...", varRunPath, varRunPath)
-			runtimeService, err := kubeletremote.NewRemoteRuntimeService(fmt.Sprintf("unix://%s/pouchcri.sock", varRunPath), time.Second*5)
+			runtimeService, err := criremote.NewRemoteRuntimeService(fmt.Sprintf("unix://%s/pouchcri.sock", varRunPath), time.Second*5)
 			if err == nil {
 				typedVersion, err := runtimeService.Version(kubeRuntimeAPIVersion)
 				if err == nil {
