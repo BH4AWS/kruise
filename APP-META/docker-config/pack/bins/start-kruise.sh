@@ -55,6 +55,11 @@ if [ ! -z "$FEATURE_GATES" ]; then
 	args="$args --feature-gates=$FEATURE_GATES"
 fi
 
+if [ -z "$RESYNC_PERIOD" ]; then
+	RESYNC_PERIOD="0"
+fi
+args="$args --sync-period=$RESYNC_PERIOD"
+
 pidof kruise-manager || {
   cd /home/admin/kruise
   for FILE in crds/*.yaml; do

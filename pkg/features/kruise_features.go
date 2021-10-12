@@ -129,7 +129,7 @@ var defaultFeatureGates = map[featuregate.Feature]featuregate.FeatureSpec{
 	PodUnavailableBudgetDeleteGate:            {Default: true, PreRelease: featuregate.Alpha},
 	PodUnavailableBudgetUpdateGate:            {Default: false, PreRelease: featuregate.Alpha},
 	TemplateNoDefaults:                        {Default: false, PreRelease: featuregate.Alpha},
-	InPlaceUpdateEnvFromMetadata:              {Default: false, PreRelease: featuregate.Alpha},
+	InPlaceUpdateEnvFromMetadata:              {Default: true, PreRelease: featuregate.Alpha},
 	StatefulSetAutoDeletePVC:                  {Default: false, PreRelease: featuregate.Alpha},
 	SidecarSetPatchPodMetadataDefaultsAllowed: {Default: false, PreRelease: featuregate.Alpha},
 	SidecarTerminator:                         {Default: false, PreRelease: featuregate.Alpha},
