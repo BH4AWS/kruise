@@ -59,6 +59,8 @@ var (
 	gClient client.Client
 
 	inPlaceUpdateTemplateSpecPatchASIRexp = regexp.MustCompile("^/spec/containers/([0-9]+)/(image|command|args|env|livenessProbe|readinessProbe|lifecycle)")
+
+	podPhaseToOrdinal = map[v1.PodPhase]int{v1.PodPending: 0, v1.PodUnknown: 1, v1.PodRunning: 2}
 )
 
 const (
@@ -333,12 +335,19 @@ func (c *asiControl) GetPodsSortFunc(pods []*v1.Pod, waitUpdateIndexes []int) fu
 		if iPostpone != jPostpone {
 			return jPostpone
 		}
-		activePods := timeOblivousActivePods{podI, podJ}
-		if activePods.Less(0, 1) {
-			return true
+		// If only one of the pods is unassigned, the unassigned one is smaller
+		if podI.Spec.NodeName != podJ.Spec.NodeName && (len(podI.Spec.NodeName) == 0 || len(podJ.Spec.NodeName) == 0) {
+			return len(podI.Spec.NodeName) == 0
 		}
-		if activePods.Less(1, 0) {
-			return false
+		// PodPending < PodUnknown < PodRunning
+		if podPhaseToOrdinal[podI.Status.Phase] != podPhaseToOrdinal[podJ.Status.Phase] {
+			return podPhaseToOrdinal[podI.Status.Phase] < podPhaseToOrdinal[podJ.Status.Phase]
+		}
+		// unavailable < available
+		iPodAvailable := c.IsPodUpdateReady(podI, c.Spec.MinReadySeconds)
+		jPodAvailable := c.IsPodUpdateReady(podJ, c.Spec.MinReadySeconds)
+		if iPodAvailable != jPodAvailable {
+			return jPodAvailable
 		}
 		iPriority := podI.Labels[apiinternal.LabelPodUpgradePriority] == "true"
 		jPriority := podJ.Labels[apiinternal.LabelPodUpgradePriority] == "true"
@@ -364,48 +373,6 @@ func afterOrZero(t1, t2 *metav1.Time) bool {
 		return t1.Time.IsZero()
 	}
 	return t1.After(t2.Time)
-}
-
-// timeOblivousActivePods type allows custom sorting of pods so a controller can pick the best ones to delete.
-type timeOblivousActivePods []*v1.Pod
-
-func (s timeOblivousActivePods) Len() int      { return len(s) }
-func (s timeOblivousActivePods) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
-
-// fork from k8s.io/kubernetes/pkg/controller/controller_utils.go
-// we comment rule 4, 5 and 6
-func (s timeOblivousActivePods) Less(i, j int) bool {
-	// 1. Unassigned < assigned
-	// If only one of the pods is unassigned, the unassigned one is smaller
-	if s[i].Spec.NodeName != s[j].Spec.NodeName && (len(s[i].Spec.NodeName) == 0 || len(s[j].Spec.NodeName) == 0) {
-		return len(s[i].Spec.NodeName) == 0
-	}
-	// 2. PodPending < PodUnknown < PodRunning
-	m := map[v1.PodPhase]int{v1.PodPending: 0, v1.PodUnknown: 1, v1.PodRunning: 2}
-	if m[s[i].Status.Phase] != m[s[j].Status.Phase] {
-		return m[s[i].Status.Phase] < m[s[j].Status.Phase]
-	}
-	// 3. Not ready < ready
-	// If only one of the pods is not ready, the not ready one is smaller
-	if podutil.IsPodReady(s[i]) != podutil.IsPodReady(s[j]) {
-		return !podutil.IsPodReady(s[i])
-	}
-	//// TODO: take availability into account when we push minReadySeconds information from deployment into pods,
-	////       see https://github.com/kubernetes/kubernetes/issues/22065
-	//// 4. Been ready for empty time < less time < more time
-	//// If both pods are ready, the latest ready one is smaller
-	//if podutil.IsPodReady(s[i]) && podutil.IsPodReady(s[j]) && !podReadyTime(s[i]).Equal(podReadyTime(s[j])) {
-	//	return afterOrZero(podReadyTime(s[i]), podReadyTime(s[j]))
-	//}
-	//// 5. Pods with containers with higher restart counts < lower restart counts
-	//if maxContainerRestarts(s[i]) != maxContainerRestarts(s[j]) {
-	//	return maxContainerRestarts(s[i]) > maxContainerRestarts(s[j])
-	//}
-	//// 6. Empty creation time pods < newer pods < older pods
-	//if !s[i].CreationTimestamp.Equal(&s[j].CreationTimestamp) {
-	//	return afterOrZero(&s[i].CreationTimestamp, &s[j].CreationTimestamp)
-	//}
-	return false
 }
 
 func (c *asiControl) IsPodUpdatePaused(pod *v1.Pod) bool {
