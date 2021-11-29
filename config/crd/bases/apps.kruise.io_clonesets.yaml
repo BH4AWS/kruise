@@ -196,7 +196,6 @@ spec:
                     description: PoolConfig contains all configurations for pooling.
                     properties:
                       patchTemplate:
-                        type: object
                         x-kubernetes-preserve-unknown-fields: true
                       policyType:
                         type: string

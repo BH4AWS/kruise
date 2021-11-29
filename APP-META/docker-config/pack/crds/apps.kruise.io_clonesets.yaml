@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.7.0
   creationTimestamp: null
   name: clonesets.apps.kruise.io
 spec:
@@ -117,6 +117,12 @@ spec:
               scaleStrategy:
                 description: ScaleStrategy indicates the ScaleStrategy that will be employed to create and delete Pods in the CloneSet.
                 properties:
+                  maxUnavailable:
+                    anyOf:
+                    - type: integer
+                    - type: string
+                    description: The maximum number of pods that can be unavailable for scaled pods. This field can control the changes rate of replicas for CloneSet so as to minimize the impact for users' service. The scale will fail if the number of unavailable pods were greater than this MaxUnavailable at scaling up. MaxUnavailable works only when scaling up.
+                    x-kubernetes-int-or-string: true
                   podsToDelete:
                     description: PodsToDelete is the names of Pod should be deleted. Note that this list will be truncated for non-existing pod names.
                     items:
@@ -126,7 +132,6 @@ spec:
                     description: PoolConfig contains all configurations for pooling.
                     properties:
                       patchTemplate:
-                        type: object
                         x-kubernetes-preserve-unknown-fields: true
                       policyType:
                         type: string
@@ -182,7 +187,6 @@ spec:
                 type: object
               template:
                 description: Template describes the pods that will be created.
-                type: object
                 x-kubernetes-preserve-unknown-fields: true
               updateStrategy:
                 description: UpdateStrategy indicates the UpdateStrategy that will be employed to update Pods in the CloneSet when a revision is made to Template.
@@ -295,11 +299,7 @@ spec:
                 type: object
               volumeClaimTemplates:
                 description: VolumeClaimTemplates is a list of claims that pods are allowed to reference. Note that PVC will be deleted when its pod has been deleted.
-                items:
-                  description: PersistentVolumeClaim is a user's request for and claim to a persistent volume
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
-                type: array
+                x-kubernetes-preserve-unknown-fields: true
             required:
             - selector
             - template

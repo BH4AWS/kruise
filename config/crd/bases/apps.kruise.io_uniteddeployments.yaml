@@ -694,10 +694,10 @@ spec:
                                   type: string
                                 type: array
                               poolConfig:
-                                description: PoolConfig contains all configurations for pooling.
+                                description: PoolConfig contains all configurations
+                                  for pooling.
                                 properties:
                                   patchTemplate:
-                                    type: object
                                     x-kubernetes-preserve-unknown-fields: true
                                   policyType:
                                     type: string

@@ -5,8 +5,10 @@ import (
 )
 
 type PoolConfig struct {
-	PolicyType    PoolPolicyType       `json:"policyType,omitempty"`
-	Pools         []PoolTerm           `json:"pools"`
+	PolicyType PoolPolicyType `json:"policyType,omitempty"`
+	Pools      []PoolTerm     `json:"pools"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Schemaless
 	PatchTemplate runtime.RawExtension `json:"patchTemplate,omitempty"`
 }
 

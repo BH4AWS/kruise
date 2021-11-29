@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.7.0
   creationTimestamp: null
   name: sidecarsets.apps.kruise.io
 spec:
@@ -90,8 +90,11 @@ spec:
                 description: List of the names of secrets required by pulling sidecar container images
                 items:
                   description: LocalObjectReference contains enough information to let you locate the referenced object inside the same namespace.
+                  properties:
+                    name:
+                      description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                      type: string
                   type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 type: array
               initContainers:
                 description: Containers is the list of init containers to be injected into the selected pod We will inject those containers by their name in ascending order We only inject init containers when a new pod is created, it does not apply to any existing pod
@@ -237,11 +240,7 @@ spec:
                 type: object
               volumes:
                 description: List of volumes that can be mounted by sidecar containers
-                items:
-                  description: Volume represents a named volume in a pod that may be accessed by any container in the pod.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
-                type: array
+                x-kubernetes-preserve-unknown-fields: true
             type: object
           status:
             description: SidecarSetStatus defines the observed state of SidecarSet

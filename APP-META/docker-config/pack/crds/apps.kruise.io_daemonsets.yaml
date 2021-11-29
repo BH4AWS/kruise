@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.7.0
   creationTimestamp: null
   name: daemonsets.apps.kruise.io
 spec:
@@ -107,7 +107,6 @@ spec:
                 type: object
               template:
                 description: 'An object that describes the pod that will be created. The DaemonSet will create exactly one copy of this pod on every node that matches the template''s node selector (or on every node if no node selector is specified). More info: https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller#pod-template'
-                type: object
                 x-kubernetes-preserve-unknown-fields: true
               updateStrategy:
                 description: An update strategy to replace existing DaemonSet pods with new pods.
