@@ -852,11 +852,10 @@ func (c *asiControl) isPublishSuccess(status *appsv1alpha1.CloneSetStatus, pod *
 	}
 
 	if pod.Status.Phase == v1.PodPending && status.UpdateRevision == pod.Labels[apps.ControllerRevisionHashLabelKey] {
-		for _, condition := range pod.Status.Conditions {
-			if condition.Type == v1.PodScheduled && condition.Status == v1.ConditionFalse {
-				if c.Spec.UpdateStrategy.Type == appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType {
-					return true
-				}
+		if c.Spec.UpdateStrategy.Type == appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType {
+			_, schedCondition := podutil.GetPodCondition(&pod.Status, v1.ContainersReady)
+			if schedCondition == nil || schedCondition.Status == v1.ConditionFalse {
+				return true
 			}
 		}
 	}
