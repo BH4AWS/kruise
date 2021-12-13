@@ -742,14 +742,15 @@ func (c *asiControl) injectAdditionalEnvsIntoPod(pod *v1.Pod, envs []v1.EnvVar, 
 	for _, envVar := range envs {
 		for i := range pod.Spec.Containers {
 			c := &pod.Spec.Containers[i]
-			var found bool
+			var foundInTemplate bool
 			for j := range template.Spec.Containers {
 				if template.Spec.Containers[j].Name == c.Name {
-					found = true
+					foundInTemplate = true
 					break
 				}
 			}
-			if !found {
+			isCommonVM := util.GetContainerEnvValue(c, "ali_run_mode") == "common_vm"
+			if !foundInTemplate || !isCommonVM {
 				continue
 			}
 			utilasi.AddContainerEnvHeadWithOverwrite(c, envVar.Name, envVar.Value)
