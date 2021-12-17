@@ -114,7 +114,53 @@ func (t *EphemeralJobTester) WaitForEphemeralJobDeleted(job *appsv1alpha1.Epheme
 	}
 }
 
+func (s *EphemeralJobTester) NewBaseDeployment(namespace string) *apps.Deployment {
+	randStr := "asda"
+	var replicas int32 = 1
+	return &apps.Deployment{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Deployment",
+			APIVersion: "apps/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      "foo",
+		},
+		Spec: apps.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"rand": randStr}},
+			Template: v1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"rand": randStr,
+						"run":  "nginx",
+					},
+				},
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							Name:  "nginx",
+							Image: "reg.docker.alibaba-inc.com/base/nginx",
+						},
+					},
+					Affinity: &v1.Affinity{
+						PodAntiAffinity: &v1.PodAntiAffinity{
+							PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+								{
+									Weight:          100,
+									PodAffinityTerm: v1.PodAffinityTerm{TopologyKey: v1.LabelHostname, LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"rand": randStr}}},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func (t *EphemeralJobTester) CreateTestDeployment(randStr string, replicas int32, containers []v1.Container) (pods []*v1.Pod) {
+	var int300 int64 = 300
 	deployment := &apps.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Deployment",
@@ -122,7 +168,7 @@ func (t *EphemeralJobTester) CreateTestDeployment(randStr string, replicas int32
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: t.ns,
-			Name:      "foo-" + randStr,
+			Name:      "fooo" + randStr,
 		},
 		Spec: apps.DeploymentSpec{
 			Replicas: &replicas,
@@ -146,6 +192,30 @@ func (t *EphemeralJobTester) CreateTestDeployment(randStr string, replicas int32
 						},
 					},
 					Containers: containers,
+					Tolerations: []v1.Toleration{
+						{
+							Effect: v1.TaintEffectNoSchedule,
+							Key:    "sigma.ali/resource-pool",
+							Value:  "sigma_public",
+						},
+						{
+							Effect: v1.TaintEffectNoSchedule,
+							Key:    "sigma.ali/is-ecs",
+							Value:  "true",
+						},
+						{
+							Effect:            v1.TaintEffectNoExecute,
+							Key:               "node.kubernetes.io/not-ready",
+							Operator:          v1.TolerationOpExists,
+							TolerationSeconds: &int300,
+						},
+						{
+							Effect:            v1.TaintEffectNoExecute,
+							Key:               "node.kubernetes.io/unreachable",
+							Operator:          v1.TolerationOpExists,
+							TolerationSeconds: &int300,
+						},
+					},
 				},
 			},
 		},
@@ -165,6 +235,13 @@ func (t *EphemeralJobTester) CreateTestDeployment(randStr string, replicas int32
 	}, 120*time.Second, 3*time.Second).Should(gomega.Equal(replicas))
 
 	return
+}
+
+func (t *EphemeralJobTester) CreateDeployment(deployment *apps.Deployment) {
+	Logf("create deployment(%s.%s)", deployment.Namespace, deployment.Name)
+	_, err := t.c.AppsV1().Deployments(deployment.Namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
+	gomega.Expect(err).NotTo(gomega.HaveOccurred())
+	t.WaitForDeploymentRunning(deployment)
 }
 
 func (t *EphemeralJobTester) CreateTestEphemeralJob(randStr string, replicas, Parallelism int32, selector metav1.LabelSelector, containers []v1.EphemeralContainer) *appsv1alpha1.EphemeralJob {

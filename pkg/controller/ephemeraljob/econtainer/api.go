@@ -26,7 +26,7 @@ type EphemeralContainerInterface interface {
 }
 
 func New(job *appsv1alpha1.EphemeralJob) EphemeralContainerInterface {
-	return &k8sControl{job}
+	return &asiControl{job}
 }
 
 func getEphemeralContainersMaps(containers []v1.EphemeralContainer) (map[string]v1.EphemeralContainer, bool) {
