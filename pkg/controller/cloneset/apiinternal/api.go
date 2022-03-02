@@ -40,6 +40,9 @@ const (
 	LabelRolloutId                   = "apps.kruise.io/rollout-id"
 	LabelRolloutBatchId              = "apps.kruise.io/rollout-batch-id"
 
+	AnnotationInplaceUpgradeMergeAnnotations = "sigma.ali/upgrade-merge-annotations"
+	AnnotationInplaceUpgradeMergeLabels      = "sigma.ali/upgrade-merge-labels"
+
 	LabelPodConstraintName = "alibabacloud.com/pod-constraint-name"
 )
 

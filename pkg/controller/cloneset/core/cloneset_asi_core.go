@@ -542,8 +542,8 @@ func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSp
 
 	if c.Spec.UpdateStrategy.Type == appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType {
 		mergeVolumesIntoPod(pod, c.Spec.Template.Spec.Volumes)
-		mergeAnnotations(pod, c.Annotations[sigmak8sapi.AnnotationInplaceUpgradeMergeAnnotations], c.Spec.Template.Annotations)
-		mergeLabels(pod, c.Spec.Template.Labels)
+		mergeAnnotations(pod, c.Annotations[apiinternal.AnnotationInplaceUpgradeMergeAnnotations], c.Spec.Template.Annotations)
+		mergeLabels(pod, c.Annotations[apiinternal.AnnotationInplaceUpgradeMergeLabels], c.Spec.Template.Labels)
 
 		upgradeSpec.DiffUpdate = spec.OldTemplate != nil && spec.NewTemplate != nil && !isDiffUpdateDisabled()
 	}
@@ -700,14 +700,23 @@ func mergeVolumeMountsIntoPod(pod *v1.Pod, oldContainers []v1.Container) {
 	}
 }
 
-func mergeLabels(pod *v1.Pod, templateLabels map[string]string) {
+func mergeLabels(pod *v1.Pod, upgradeMergeLabels string, templateLabels map[string]string) {
 	if pod.Labels == nil {
 		pod.Labels = map[string]string{}
 	}
-	if order, ok := templateLabels[apiinternal.LabelPodUpgradeBatchOrder]; ok {
-		pod.Labels[apiinternal.LabelPodUpgradeBatchOrder] = order
-	} else {
-		delete(pod.Labels, apiinternal.LabelPodUpgradeBatchOrder)
+	// 同步 sigma.ali/upgrade-merge-labels 列表中指定的 label
+	// 固定同步 inplaceset.beta1.sigma.ali/upgrade-batch-order
+	mergeLabelKeys := sets.NewString(apiinternal.LabelPodUpgradeBatchOrder)
+	if len(upgradeMergeLabels) > 0 {
+		mergeLabelKeys.Insert(strings.Split(upgradeMergeLabels, ",")...)
+	}
+	for _, key := range mergeLabelKeys.UnsortedList() {
+		key = strings.TrimSpace(key)
+		if value, ok := templateLabels[key]; ok {
+			pod.Labels[key] = value
+		} else {
+			delete(pod.Labels, key)
+		}
 	}
 }
 
@@ -715,11 +724,13 @@ func mergeAnnotations(pod *v1.Pod, upgradeMergeAnnotations string, templateAnnot
 	if pod.Annotations == nil {
 		pod.Annotations = map[string]string{}
 	}
-	// 同步 inplaceset sigma.ali/upgrade-merge-annotations 列表中指定的 annotation
+	// 同步 sigma.ali/upgrade-merge-annotations 列表中指定的 annotation
 	// 同步 pod.beta1.sigma.ali/container-extra-config annotation
-	upgradeMergeAnnotationsArray := strings.Split(upgradeMergeAnnotations, ",")
-	upgradeMergeAnnotationsArray = append(upgradeMergeAnnotationsArray, sigmak8sapi.AnnotationContainerExtraConfig)
-	for _, key := range upgradeMergeAnnotationsArray {
+	mergeAnnotationKeys := sets.NewString(sigmak8sapi.AnnotationContainerExtraConfig)
+	if len(upgradeMergeAnnotations) > 0 {
+		mergeAnnotationKeys.Insert(strings.Split(upgradeMergeAnnotations, ",")...)
+	}
+	for _, key := range mergeAnnotationKeys.UnsortedList() {
 		key = strings.TrimSpace(key)
 		if value, ok := templateAnnotations[key]; ok {
 			pod.Annotations[key] = value
