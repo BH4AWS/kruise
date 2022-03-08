@@ -121,7 +121,7 @@ var defaultFeatureGates = map[featuregate.Feature]featuregate.FeatureSpec{
 	DaemonWatchingPod: {Default: true, PreRelease: featuregate.Beta},
 
 	CloneSetShortHash:                         {Default: false, PreRelease: featuregate.Alpha},
-	KruisePodReadinessGate:                    {Default: true, PreRelease: featuregate.Alpha},
+	KruisePodReadinessGate:                    {Default: false, PreRelease: featuregate.Alpha},
 	PreDownloadImageForInPlaceUpdate:          {Default: true, PreRelease: featuregate.Alpha},
 	CloneSetPartitionRollback:                 {Default: false, PreRelease: featuregate.Alpha},
 	ResourcesDeletionProtection:               {Default: true, PreRelease: featuregate.Alpha},

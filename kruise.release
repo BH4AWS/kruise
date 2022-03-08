@@ -8,7 +8,7 @@ code.language=go
 build.command=APP-META/docker-config/build.sh
 build.output=APP-META/docker-config/
 build.tools.docker.args=--net host
-build.image="golang:1.15"
+build.image="golang:1.17"
 
 # 镜像带 commitId 方便回溯代码版本
 #docker.tag=${TIMESTAMP}_${CODE_BRANCH_COMMIT_ID}

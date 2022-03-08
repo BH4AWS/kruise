@@ -23,6 +23,7 @@ import (
 	policyv1alpha1 "github.com/openkruise/kruise/apis/policy/v1alpha1"
 	"github.com/openkruise/kruise/pkg/controller/cloneset/apiinternal"
 	"github.com/openkruise/kruise/pkg/util"
+	utilclient "github.com/openkruise/kruise/pkg/util/client"
 	"github.com/openkruise/kruise/pkg/util/controllerfinder"
 	"github.com/openkruise/kruise/pkg/utilasi"
 	sigmak8sapi "gitlab.alibaba-inc.com/sigma/sigma-k8s-api/pkg/api"
@@ -38,7 +39,7 @@ const (
 
 	//快下Pods label
 	PodNamingRegisterStateLabel = "pod.beta1.sigma.ali/naming-register-state"
-	PodWaitOnlineValue = "wait_online"
+	PodWaitOnlineValue          = "wait_online"
 )
 
 type asiControl struct {
@@ -53,7 +54,7 @@ func (c *asiControl) GetPodUnavailableBudget() *policyv1alpha1.PodUnavailableBud
 
 func (c *asiControl) IsPodReady(pod *corev1.Pod) bool {
 	//快下的pod，认为Not Ready，进而删除该pod webhook会直接放过
-	if pod.Labels[PodNamingRegisterStateLabel]==PodWaitOnlineValue {
+	if pod.Labels[PodNamingRegisterStateLabel] == PodWaitOnlineValue {
 		return false
 	}
 
@@ -116,7 +117,7 @@ func (c *asiControl) GetPodsForPub() ([]*corev1.Pod, int32, error) {
 	if pub.Spec.TargetReference != nil {
 		ref := pub.Spec.TargetReference
 		matchedPods, expectedCount, err = c.controllerFinder.GetPodsForRef(ref.APIVersion, ref.Kind, ref.Name, pub.Namespace, true)
-		if err!=nil {
+		if err != nil {
 			return nil, 0, err
 		}
 	} else {
@@ -126,9 +127,9 @@ func (c *asiControl) GetPodsForPub() ([]*corev1.Pod, int32, error) {
 			klog.Warningf("pub(%s/%s) GetFastLabelSelector failed: %s", pub.Namespace, pub.Name, err.Error())
 			return nil, 0, nil
 		}
-		listOptions = &client.ListOptions{Namespace: pub.Namespace, LabelSelector: labelSelector, DisableDeepCopy: true}
+		listOptions = &client.ListOptions{Namespace: pub.Namespace, LabelSelector: labelSelector}
 		podList := &corev1.PodList{}
-		if err = c.List(context.TODO(), podList, listOptions); err != nil {
+		if err = c.List(context.TODO(), podList, listOptions, utilclient.DisableDeepCopy); err != nil {
 			return nil, 0, err
 		}
 
@@ -147,9 +148,9 @@ func (c *asiControl) GetPodsForPub() ([]*corev1.Pod, int32, error) {
 	// 支持快上快下场景
 	onlinePods := make([]*corev1.Pod, 0)
 	var waitOnlineLength int32
-	for i :=range matchedPods {
+	for i := range matchedPods {
 		pod := matchedPods[i]
-		if pod.Labels[PodNamingRegisterStateLabel]==PodWaitOnlineValue {
+		if pod.Labels[PodNamingRegisterStateLabel] == PodWaitOnlineValue {
 			waitOnlineLength++
 			continue
 		}
