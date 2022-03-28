@@ -26,6 +26,8 @@ import (
 	"strings"
 	"time"
 
+	appspub "github.com/openkruise/kruise/apis/apps/pub"
+
 	"github.com/appscode/jsonpatch"
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	"github.com/openkruise/kruise/pkg/controller/cloneset/apiinternal"
@@ -439,11 +441,16 @@ func (c *asiControl) checkPodUpdateCompleted(pod *v1.Pod) error {
 	return nil
 }
 
+func (c *asiControl) checkContainersUpdateCompleted(pod *v1.Pod, inPlaceUpdateState *appspub.InPlaceUpdateState) error {
+	return c.checkPodUpdateCompleted(pod)
+}
+
 func (c *asiControl) GetUpdateOptions() *inplaceupdate.UpdateOptions {
 	opts := &inplaceupdate.UpdateOptions{
-		CalculateSpec:        c.customizeSpecCalculate,
-		PatchSpecToPod:       c.customizePatchPod,
-		CheckUpdateCompleted: c.checkPodUpdateCompleted,
+		CalculateSpec:                  c.customizeSpecCalculate,
+		PatchSpecToPod:                 c.customizePatchPod,
+		CheckPodUpdateCompleted:        c.checkPodUpdateCompleted,
+		CheckContainersUpdateCompleted: c.checkContainersUpdateCompleted,
 	}
 	if c.Spec.UpdateStrategy.InPlaceUpdateStrategy != nil {
 		opts.GracePeriodSeconds = c.Spec.UpdateStrategy.InPlaceUpdateStrategy.GracePeriodSeconds
@@ -503,7 +510,7 @@ func (c *asiControl) customizeSpecCalculate(oldRevision, newRevision *apps.Contr
 	return updateSpec
 }
 
-func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSpec) (*v1.Pod, error) {
+func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSpec, state *appspub.InPlaceUpdateState) (*v1.Pod, error) {
 	setConfig, err := c.getInPlaceSetConfig(gClient)
 	if err != nil {
 		klog.Warningf("CloneSet %s/%s failed to get InPlaceSet config: %v", c.Namespace, c.Name, err)
