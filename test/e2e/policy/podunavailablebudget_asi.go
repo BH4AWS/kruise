@@ -18,9 +18,9 @@ package policy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
-	"encoding/json"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
@@ -76,12 +76,12 @@ var _ = SIGDescribe("PodUnavailableBudgetASI", func() {
 			cloneset := tester.NewBaseCloneSet(ns)
 			cloneset.Spec.Replicas = utilpointer.Int32Ptr(2)
 			cloneset.Labels = map[string]string{
-				sigmakruiseapi.LabelCloneSetMode: sigmakruiseapi.CloneSetASI,
-				"sigma.ali/app-name": "ele-base-solon",
-				"sigma.ali/instance-group": "ele-base-solon-asi-deploy-test",
-				"sigma.ali/site": "nt12",
+				sigmakruiseapi.LabelCloneSetMode:  sigmakruiseapi.CloneSetASI,
+				"sigma.ali/app-name":              "ele-base-solon",
+				"sigma.ali/instance-group":        "ele-base-solon-asi-deploy-test",
+				"sigma.ali/site":                  "nt12",
 				"sigma.alibaba-inc.com/app-stage": "DAILY",
-				"sigma.alibaba-inc.com/app-unit": "CENTER_UNIT.center",
+				"sigma.alibaba-inc.com/app-unit":  "CENTER_UNIT.center",
 			}
 			cloneset.Spec.UpdateStrategy = appsv1alpha1.CloneSetUpdateStrategy{
 				Type: appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType,
@@ -89,26 +89,26 @@ var _ = SIGDescribe("PodUnavailableBudgetASI", func() {
 			cloneset.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/busybox:latest"
 			cloneset.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			cloneset.Spec.Template.Labels = map[string]string{
-				"sigma.ali/app-name": "ele-base-solon",
-				"sigma.ali/instance-group": "ele-base-solon-asi-deploy-test",
-				"sigma.ali/site": "nt12",
+				"sigma.ali/app-name":              "ele-base-solon",
+				"sigma.ali/instance-group":        "ele-base-solon-asi-deploy-test",
+				"sigma.ali/site":                  "nt12",
 				"sigma.alibaba-inc.com/app-stage": "DAILY",
-				"sigma.alibaba-inc.com/app-unit": "CENTER_UNIT.center",
-				"app":            "busybox",
-				"pub-controller": "true",
+				"sigma.alibaba-inc.com/app-unit":  "CENTER_UNIT.center",
+				"app":                             "busybox",
+				"pub-controller":                  "true",
 			}
-			by,_ := json.Marshal(cloneset)
+			by, _ := json.Marshal(cloneset)
 			fmt.Println(string(by))
 			ginkgo.By(fmt.Sprintf("Creating CloneSet(%s.%s)", cloneset.Namespace, cloneset.Name))
 			cloneset = tester.CreateCloneSet(cloneset)
-			nsObj,err := c.CoreV1().Namespaces().Get(context.TODO(), ns, metav1.GetOptions{})
+			nsObj, err := c.CoreV1().Namespaces().Get(context.TODO(), ns, metav1.GetOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			nsObj.Labels = map[string]string{
 				NamespaceEnablePubLabel: "true",
 			}
 			_, err = c.CoreV1().Namespaces().Update(context.TODO(), nsObj, metav1.UpdateOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			time.Sleep(time.Second*3)
+			time.Sleep(time.Second * 3)
 			pubName := fmt.Sprintf("%s-pub", cloneset.Name)
 			pub, err := kc.PolicyV1alpha1().PodUnavailableBudgets(ns).Get(context.TODO(), pubName, metav1.GetOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
@@ -120,13 +120,13 @@ var _ = SIGDescribe("PodUnavailableBudgetASI", func() {
 			pods, err := sidecarTester.GetSelectorPods(cloneset.Namespace, cloneset.Spec.Selector)
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(pods).To(gomega.HaveLen(2))
-			for i :=range pods {
+			for i := range pods {
 				podIn := pods[i]
 				// pub会防护 pub 删除
 				err = c.CoreV1().Pods(ns).Delete(context.TODO(), podIn.Name, metav1.DeleteOptions{})
-				if i==0 {
+				if i == 0 {
 					gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-				}else {
+				} else {
 					gomega.Expect(err).Should(gomega.HaveOccurred())
 				}
 			}
@@ -140,7 +140,7 @@ var _ = SIGDescribe("PodUnavailableBudgetASI", func() {
 			cloneset.Spec.Replicas = utilpointer.Int32Ptr(4)
 			_, err = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Update(context.TODO(), cloneset, metav1.UpdateOptions{})
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			time.Sleep(time.Second*10)
+			time.Sleep(time.Second * 10)
 			pub, err = kc.PolicyV1alpha1().PodUnavailableBudgets(ns).Get(context.TODO(), pubName, metav1.GetOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(pub.Spec.MaxUnavailable.IntVal).To(gomega.Equal(int32(2)))
@@ -151,36 +151,36 @@ var _ = SIGDescribe("PodUnavailableBudgetASI", func() {
 			pods, err = sidecarTester.GetSelectorPods(cloneset.Namespace, cloneset.Spec.Selector)
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(pods).To(gomega.HaveLen(4))
-			for i :=range pods {
+			for i := range pods {
 				podIn := pods[i]
 				// pub会防护 pub 删除
 				err = c.CoreV1().Pods(ns).Delete(context.TODO(), podIn.Name, metav1.DeleteOptions{})
-				if i<2 {
+				if i < 2 {
 					gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-				}else {
+				} else {
 					gomega.Expect(err).Should(gomega.HaveOccurred())
 				}
 			}
 			pub, err = kc.PolicyV1alpha1().PodUnavailableBudgets(ns).Get(context.TODO(), pubName, metav1.GetOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(pub.Status.UnavailableAllowed).To(gomega.Equal(int32(0)))
-			time.Sleep(time.Second*5)
+			time.Sleep(time.Second * 5)
 
 			// 快上快下场景
 			pods, err = sidecarTester.GetSelectorPods(cloneset.Namespace, cloneset.Spec.Selector)
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(pods).To(gomega.HaveLen(4))
 			// set two pods wait_online
-			for i :=range pods {
+			for i := range pods {
 				podIn := pods[i]
-				if i>=2 {
+				if i >= 2 {
 					break
 				}
 				podIn.Labels[pubcontrol.PodNamingRegisterStateLabel] = pubcontrol.PodWaitOnlineValue
 				_, err = c.CoreV1().Pods(ns).Update(context.TODO(), podIn, metav1.UpdateOptions{})
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			}
-			time.Sleep(time.Second*10)
+			time.Sleep(time.Second * 10)
 			pub, err = kc.PolicyV1alpha1().PodUnavailableBudgets(ns).Get(context.TODO(), pubName, metav1.GetOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(pub.Spec.MaxUnavailable.IntVal).To(gomega.Equal(int32(1)))
@@ -193,25 +193,25 @@ var _ = SIGDescribe("PodUnavailableBudgetASI", func() {
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(pods).To(gomega.HaveLen(4))
 			deleteOnlineNumber := 0
-			for _,podIn :=range pods {
+			for _, podIn := range pods {
 				if podIn.Labels[pubcontrol.PodNamingRegisterStateLabel] == pubcontrol.PodWaitOnlineValue {
 					continue
 				}
 				deleteOnlineNumber++
 				// pub只防护 online pod
 				err = c.CoreV1().Pods(ns).Delete(context.TODO(), podIn.Name, metav1.DeleteOptions{})
-				if deleteOnlineNumber==2 {
+				if deleteOnlineNumber == 2 {
 					gomega.Expect(err).Should(gomega.HaveOccurred())
-				}else {
+				} else {
 					gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 				}
 			}
-			time.Sleep(time.Second*5)
+			time.Sleep(time.Second * 5)
 			// 删除 wait_online pod 不防护
 			pods, err = sidecarTester.GetSelectorPods(cloneset.Namespace, cloneset.Spec.Selector)
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(pods).To(gomega.HaveLen(4))
-			for _,podIn :=range pods {
+			for _, podIn := range pods {
 				if podIn.Labels[pubcontrol.PodNamingRegisterStateLabel] != pubcontrol.PodWaitOnlineValue {
 					continue
 				}
@@ -219,7 +219,7 @@ var _ = SIGDescribe("PodUnavailableBudgetASI", func() {
 				err = c.CoreV1().Pods(ns).Delete(context.TODO(), podIn.Name, metav1.DeleteOptions{})
 				gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			}
-			time.Sleep(time.Second*10)
+			time.Sleep(time.Second * 10)
 			pub, err = kc.PolicyV1alpha1().PodUnavailableBudgets(ns).Get(context.TODO(), pubName, metav1.GetOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(pub.Spec.MaxUnavailable.IntVal).To(gomega.Equal(int32(2)))
@@ -232,13 +232,13 @@ var _ = SIGDescribe("PodUnavailableBudgetASI", func() {
 			pods, err = sidecarTester.GetSelectorPods(cloneset.Namespace, cloneset.Spec.Selector)
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(pods).To(gomega.HaveLen(4))
-			for i :=range pods {
+			for i := range pods {
 				podIn := pods[i]
 				// pub会防护 pub eviction
 				err = c.CoreV1().Pods(ns).Evict(context.TODO(), &policyv1beta1.Eviction{ObjectMeta: metav1.ObjectMeta{Name: podIn.Name}})
-				if i<2 {
+				if i < 2 {
 					gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-				}else {
+				} else {
 					fmt.Println(err.Error())
 					gomega.Expect(err).Should(gomega.HaveOccurred())
 				}

@@ -17,6 +17,9 @@ limitations under the License.
 package pubcontrol
 
 import (
+	"flag"
+	"k8s.io/klog/v2"
+
 	policyv1alpha1 "github.com/openkruise/kruise/apis/policy/v1alpha1"
 	"github.com/openkruise/kruise/pkg/util/controllerfinder"
 	corev1 "k8s.io/api/core/v1"
@@ -24,6 +27,12 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+var mode string
+
+func init() {
+	flag.StringVar(&mode, "pub-mode", mode, "pub mode asi or default")
+}
 
 var PubControl pubControl
 var recorder record.EventRecorder
@@ -54,5 +63,10 @@ type pubControl interface {
 func InitPubControl(cli client.Client, finder *controllerfinder.ControllerFinder, rec record.EventRecorder) {
 	recorder = rec
 	kclient = cli
-	PubControl = &commonControl{controllerFinder: finder, Client: cli}
+	if mode == "asi" {
+		PubControl = newAsiControl(cli, finder)
+		klog.V(3).Infof("Init asi mode PubControl success")
+	} else {
+		PubControl = &commonControl{controllerFinder: finder, Client: cli}
+	}
 }

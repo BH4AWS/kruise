@@ -60,6 +60,16 @@ if [ -z "$RESYNC_PERIOD" ]; then
 fi
 args="$args --sync-period=$RESYNC_PERIOD"
 
+if [ -z "$PUB_WORKERS" ]; then
+	PUB_WORKERS="20"
+fi
+args="$args --podunavailablebudget-workers=$PUB_WORKERS"
+
+if [ -z "$PUB_MODE" ]; then
+	PUB_MODE="asi"
+fi
+args="$args --pub-mode=$PUB_MODE"
+
 pidof kruise-manager || {
   cd /home/admin/kruise
   for FILE in crds/*.yaml; do

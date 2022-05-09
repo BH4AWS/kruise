@@ -17,39 +17,39 @@ limitations under the License.
 package pubcontrol
 
 import (
-	"context"
 	"encoding/json"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	policyv1alpha1 "github.com/openkruise/kruise/apis/policy/v1alpha1"
 	"github.com/openkruise/kruise/pkg/controller/cloneset/apiinternal"
-	"github.com/openkruise/kruise/pkg/util"
-	utilclient "github.com/openkruise/kruise/pkg/util/client"
 	"github.com/openkruise/kruise/pkg/util/controllerfinder"
 	"github.com/openkruise/kruise/pkg/utilasi"
 	sigmak8sapi "gitlab.alibaba-inc.com/sigma/sigma-k8s-api/pkg/api"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
-	kubecontroller "k8s.io/kubernetes/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
-	LabelPubMode = "pub.kruise.io/mode"
-	PubASI       = "asi"
-
 	//快下Pods label
 	PodNamingRegisterStateLabel = "pod.beta1.sigma.ali/naming-register-state"
 	PodWaitOnlineValue          = "wait_online"
+
+	// Debug request defined by users
+	AnnotationPodDebug      = "pod.beta1.sigma.ali/debug"
+	AnnotationVCPodOwnerRef = "tenancy.x-k8s.io/ownerReferences"
 )
 
 type asiControl struct {
 	client.Client
-	*policyv1alpha1.PodUnavailableBudget
 	controllerFinder *controllerfinder.ControllerFinder
+	commonControl    *commonControl
 }
 
-func (c *asiControl) GetPodUnavailableBudget() *policyv1alpha1.PodUnavailableBudget {
-	return c.PodUnavailableBudget
+func newAsiControl(client client.Client, finder *controllerfinder.ControllerFinder) pubControl {
+	control := &asiControl{controllerFinder: finder, Client: client}
+	control.commonControl = &commonControl{controllerFinder: finder, Client: client}
+	return control
 }
 
 func (c *asiControl) IsPodReady(pod *corev1.Pod) bool {
@@ -57,10 +57,11 @@ func (c *asiControl) IsPodReady(pod *corev1.Pod) bool {
 	if pod.Labels[PodNamingRegisterStateLabel] == PodWaitOnlineValue {
 		return false
 	}
-
-	// 1. pod.Status.Phase == v1.PodRunning
-	// 2. pod.condition PodReady == true
-	return util.IsRunningAndReady(pod)
+	// debug pod
+	if pod.Annotations[AnnotationPodDebug] != "" {
+		return false
+	}
+	return c.commonControl.IsPodReady(pod)
 }
 
 func (c *asiControl) IsPodStateConsistent(pod *corev1.Pod) bool {
@@ -107,42 +108,11 @@ func (c *asiControl) IsPodUnavailableChanged(oldPod, newPod *corev1.Pod) bool {
 // return two parameters
 // 1. podList
 // 2. expectedCount, the default is workload.Replicas
-func (c *asiControl) GetPodsForPub() ([]*corev1.Pod, int32, error) {
-	pub := c.GetPodUnavailableBudget()
+func (c *asiControl) GetPodsForPub(pub *policyv1alpha1.PodUnavailableBudget) ([]*corev1.Pod, int32, error) {
 	// if targetReference isn't nil, priority to take effect
-	var listOptions *client.ListOptions
-	var expectedCount int32
-	var err error
-	matchedPods := make([]*corev1.Pod, 0)
-	if pub.Spec.TargetReference != nil {
-		ref := pub.Spec.TargetReference
-		matchedPods, expectedCount, err = c.controllerFinder.GetPodsForRef(ref.APIVersion, ref.Kind, ref.Name, pub.Namespace, true)
-		if err != nil {
-			return nil, 0, err
-		}
-	} else {
-		// get pods for selector
-		labelSelector, err := util.GetFastLabelSelector(pub.Spec.Selector)
-		if err != nil {
-			klog.Warningf("pub(%s/%s) GetFastLabelSelector failed: %s", pub.Namespace, pub.Name, err.Error())
-			return nil, 0, nil
-		}
-		listOptions = &client.ListOptions{Namespace: pub.Namespace, LabelSelector: labelSelector}
-		podList := &corev1.PodList{}
-		if err = c.List(context.TODO(), podList, listOptions, utilclient.DisableDeepCopy); err != nil {
-			return nil, 0, err
-		}
-
-		for i := range podList.Items {
-			pod := &podList.Items[i]
-			if kubecontroller.IsPodActive(pod) {
-				matchedPods = append(matchedPods, pod)
-			}
-		}
-		expectedCount, err = c.controllerFinder.GetExpectedScaleForPods(matchedPods)
-		if err != nil {
-			return nil, 0, err
-		}
+	matchedPods, expectedCount, err := c.commonControl.GetPodsForPub(pub)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	// 支持快上快下场景
@@ -158,4 +128,34 @@ func (c *asiControl) GetPodsForPub() ([]*corev1.Pod, int32, error) {
 	}
 	expectedCount = expectedCount - waitOnlineLength
 	return onlinePods, expectedCount, nil
+}
+
+func (c *asiControl) GetPubForPod(pod *corev1.Pod) (*policyv1alpha1.PodUnavailableBudget, error) {
+	return c.commonControl.GetPubForPod(pod)
+}
+
+func (c *asiControl) GetPodControllerOf(pod *corev1.Pod) *metav1.OwnerReference {
+	if ref := c.commonControl.GetPodControllerOf(pod); ref != nil {
+		return ref
+	}
+	// vc/csk, tenancy.x-k8s.io/ownerReferences:
+	// '[{"apiVersion":"apps/v1","kind":"ReplicaSet","name":"deployment-5bd47cb4b9","uid":"9792c697-ed69-4466-9c4d-f2a9f46e3d44","controller":true,"blockOwnerDeletion":true}]'
+	if pod.Annotations == nil {
+		return nil
+	}
+	refStr := pod.Annotations[AnnotationVCPodOwnerRef]
+	if refStr == "" {
+		return nil
+	}
+	var refs []metav1.OwnerReference
+	if err := json.Unmarshal([]byte(refStr), &refs); err != nil {
+		klog.Errorf("pub control Unmarshal pod(%s/%s) annotations(%s) body(%s) failed: %s", pod.Namespace, pod.Name, AnnotationVCPodOwnerRef, refStr, err.Error())
+		return nil
+	}
+	for i := range refs {
+		if refs[i].Controller != nil && *refs[i].Controller {
+			return &refs[i]
+		}
+	}
+	return nil
 }
