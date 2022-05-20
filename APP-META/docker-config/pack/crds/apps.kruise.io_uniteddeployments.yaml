@@ -118,6 +118,9 @@ spec:
                                     additionalProperties:
                                       type: string
                                     type: object
+                                  markPodNotReady:
+                                    description: 'MarkPodNotReady = true means: - Pod will be set to ''NotReady'' at preparingDelete/preparingUpdate state. - Pod will be restored to ''Ready'' at Updated state if it was set to ''NotReady'' at preparingUpdate state. Default to false.'
+                                    type: boolean
                                 type: object
                               preDelete:
                                 description: PreDelete is the hook before Pod to be deleted.
@@ -130,6 +133,9 @@ spec:
                                     additionalProperties:
                                       type: string
                                     type: object
+                                  markPodNotReady:
+                                    description: 'MarkPodNotReady = true means: - Pod will be set to ''NotReady'' at preparingDelete/preparingUpdate state. - Pod will be restored to ''Ready'' at Updated state if it was set to ''NotReady'' at preparingUpdate state. Default to false.'
+                                    type: boolean
                                 type: object
                             type: object
                           persistentVolumeClaimRetentionPolicy:
@@ -339,6 +345,9 @@ spec:
                                     additionalProperties:
                                       type: string
                                     type: object
+                                  markPodNotReady:
+                                    description: 'MarkPodNotReady = true means: - Pod will be set to ''NotReady'' at preparingDelete/preparingUpdate state. - Pod will be restored to ''Ready'' at Updated state if it was set to ''NotReady'' at preparingUpdate state. Default to false.'
+                                    type: boolean
                                 type: object
                               preDelete:
                                 description: PreDelete is the hook before Pod to be deleted.
@@ -351,6 +360,9 @@ spec:
                                     additionalProperties:
                                       type: string
                                     type: object
+                                  markPodNotReady:
+                                    description: 'MarkPodNotReady = true means: - Pod will be set to ''NotReady'' at preparingDelete/preparingUpdate state. - Pod will be restored to ''Ready'' at Updated state if it was set to ''NotReady'' at preparingUpdate state. Default to false.'
+                                    type: boolean
                                 type: object
                             type: object
                           minReadySeconds:
