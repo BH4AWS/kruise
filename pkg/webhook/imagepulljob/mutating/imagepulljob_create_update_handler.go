@@ -52,9 +52,9 @@ func (h *ImagePullJobCreateUpdateHandler) Handle(ctx context.Context, req admiss
 		obj.Spec.CompletionPolicy.ActiveDeadlineSeconds = nil
 	}
 
-        if reflect.DeepEqual(obj, copy) {
-                return admission.Allowed("")
-        }
+	if reflect.DeepEqual(obj, copy) {
+		return admission.Allowed("")
+	}
 	marshalled, err := json.Marshal(obj)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, err)

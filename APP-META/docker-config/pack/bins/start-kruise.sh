@@ -70,6 +70,11 @@ if [ -z "$PUB_MODE" ]; then
 fi
 args="$args --pub-mode=$PUB_MODE"
 
+if [ -z "$LIFECYCLE_READINESS_MODE" ]; then
+	LIFECYCLE_READINESS_MODE="asi"
+fi
+args="$args --lifecycle-readiness-mode=$LIFECYCLE_READINESS_MODE"
+
 pidof kruise-manager || {
   cd /home/admin/kruise
   for FILE in crds/*.yaml; do
