@@ -375,7 +375,7 @@ func TestNoUpdateSidecarDuringAppUpgrade(t *testing.T) {
 				Raw: []byte(util.DumpJSON(oldPod)),
 			}
 			req := newAdmission(admissionv1.Update, runtime.RawExtension{}, oldPodRaw, "")
-			err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
+			_, err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 			if err != nil {
 				t.Fatalf("inject sidecar into pod failed, err: %v", err)
 			}
@@ -677,7 +677,7 @@ func TestTransferEnvDuringAppUpgrade(t *testing.T) {
 				Raw: []byte(util.DumpJSON(oldPod)),
 			}
 			req := newAdmission(admissionv1.Update, runtime.RawExtension{}, oldPodRaw, "")
-			err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
+			_, err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 			if err != nil {
 				t.Fatalf("inject sidecar into pod failed, err: %v", err)
 			}
@@ -1065,7 +1065,7 @@ func TestShareMountsDuringUpgrade(t *testing.T) {
 				Raw: []byte(util.DumpJSON(oldPod)),
 			}
 			req := newAdmission(admissionv1.Update, runtime.RawExtension{}, oldPodRaw, "")
-			err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
+			_, err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 			if err != nil {
 				t.Fatalf("inject sidecar into pod failed, err: %v", err)
 			}
@@ -1131,7 +1131,7 @@ func TestUpgradeSidecarWhenInplaceSetUpgrade(t *testing.T) {
 		Raw: []byte(util.DumpJSON(oldPod)),
 	}
 	req := newAdmission(admissionv1.Update, runtime.RawExtension{}, oldPodRaw, "")
-	err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
+	_, err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 	if err != nil {
 		t.Fatalf("inject sidecar into pod failed, err: %v", err)
 	}
@@ -1180,7 +1180,7 @@ func TestUpgradeSidecarWhenCloneSetUpgrade(t *testing.T) {
 		Raw: []byte(util.DumpJSON(oldPod)),
 	}
 	req := newAdmission(admissionv1.Update, runtime.RawExtension{}, oldPodRaw, "")
-	err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
+	_, err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 	if err != nil {
 		t.Fatalf("inject sidecar into pod failed, err: %v", err)
 	}
@@ -1232,7 +1232,7 @@ func TestUpgradeSidecarWhenSidecarSetUpgrade(t *testing.T) {
 		Raw: []byte(util.DumpJSON(oldPod)),
 	}
 	req := newAdmission(admissionv1.Update, runtime.RawExtension{}, oldPodRaw, "")
-	err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
+	_, err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 	if err != nil {
 		t.Fatalf("inject sidecar into pod failed, err: %v", err)
 	}
@@ -1336,7 +1336,7 @@ func TestUpgradeSidecarWhenSidecarSetHotUpgrade(t *testing.T) {
 		Raw: []byte(util.DumpJSON(oldPod)),
 	}
 	req := newAdmission(admissionv1.Update, runtime.RawExtension{}, oldPodRaw, "")
-	err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
+	_, err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 	if err != nil {
 		t.Fatalf("inject sidecar into pod failed, err: %v", err)
 	}
