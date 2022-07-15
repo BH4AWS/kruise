@@ -27,6 +27,9 @@ import (
 )
 
 func injectPodReadinessGate(req admission.Request, pod *v1.Pod) (skip bool) {
+	if hippoPodVersion, ok := pod.Labels["app.hippo.io/pod-version"]; ok && hippoPodVersion == "v2.5" {
+		return true
+	}
 	if req.Operation != admissionv1.Create {
 		return true
 	}

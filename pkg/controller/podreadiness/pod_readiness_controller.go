@@ -18,6 +18,7 @@ package podreadiness
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	appspub "github.com/openkruise/kruise/apis/apps/pub"
@@ -66,10 +67,16 @@ func add(mgr manager.Manager, r *ReconcilePodReadiness) error {
 	err = c.Watch(&source.Kind{Type: &v1.Pod{}}, &handler.EnqueueRequestForObject{}, predicate.Funcs{
 		CreateFunc: func(e event.CreateEvent) bool {
 			pod := e.Object.(*v1.Pod)
+			if isHippoOldPod(pod) {
+				return false
+			}
 			return utilpodreadiness.ContainsReadinessGate(pod) && utilpodreadiness.GetReadinessCondition(pod) == nil
 		},
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			pod := e.ObjectNew.(*v1.Pod)
+			if isHippoOldPod(pod) {
+				return false
+			}
 			return utilpodreadiness.ContainsReadinessGate(pod) && utilpodreadiness.GetReadinessCondition(pod) == nil
 		},
 		DeleteFunc: func(e event.DeleteEvent) bool {
@@ -129,6 +136,12 @@ func (r *ReconcilePodReadiness) Reconcile(_ context.Context, request reconcile.R
 			return nil
 		}
 
+		if isHippoOldPod(pod) {
+			klog.Infof("Ignoring readinessGate for Hippo Pod %s/%s with app.hippo.io/pod-version=%v",
+				pod.Namespace, pod.Name, pod.Labels["app.hippo.io/pod-version"])
+			return nil
+		}
+
 		pod.Status.Conditions = append(pod.Status.Conditions, v1.PodCondition{
 			Type:               appspub.KruisePodReadyConditionType,
 			Status:             v1.ConditionTrue,
@@ -137,4 +150,11 @@ func (r *ReconcilePodReadiness) Reconcile(_ context.Context, request reconcile.R
 		return r.Status().Update(context.TODO(), pod)
 	})
 	return reconcile.Result{}, err
+}
+
+func isHippoOldPod(pod *v1.Pod) bool {
+	if hippoPodVersion, ok := pod.Labels["app.hippo.io/pod-version"]; ok && strings.HasPrefix(hippoPodVersion, "v2") {
+		return true
+	}
+	return false
 }
