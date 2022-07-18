@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-//配置文件中run_type的取值，只能填以下三个值中的一个
+// 配置文件中run_type的取值，只能填以下三个值中的一个
 const (
 	RunTypeTest   = "test"  // 测试环境
 	RunTypeDaily  = "daily" // 日常环境
@@ -12,8 +12,8 @@ const (
 	RunTypeSuffix = "_dadi" // uc使用直接在image后面增加后缀的方法
 )
 
-//1.ref是否符合 DADI image命名规则，以防止转换机把正常的image给覆盖掉.
-//2.防止向normal_image插入记录时，将DADI image插入，造成转换错误
+// 1.ref是否符合 DADI image命名规则，以防止转换机把正常的image给覆盖掉.
+// 2.防止向normal_image插入记录时，将DADI image插入，造成转换错误
 func IsDadiImageName(ref string) bool {
 	preStr := "/dadi"
 	specStr := "/dadi_"

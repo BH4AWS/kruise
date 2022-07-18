@@ -118,41 +118,44 @@ func ReplaceOwnerRef(obj metav1.Object, owner metav1.OwnerReference) {
 
 // 合并origin.Envs 和 other.Envs，并且将结果赋值到 origin.Envs
 // 如果origin.Envs 与 other.Envs 包含相同的Env.Name，则以origin为准
-// 例如：origin.Envs = []EnvVar{
-//		{
-//			Name: env-1,
-// 			Value: origin1,
-//		},
-// 		{
-//			Name: env-2,
-//			Value: origin2,
+//
+//	例如：origin.Envs = []EnvVar{
+//			{
+//				Name: env-1,
+//				Value: origin1,
+//			},
+//			{
+//				Name: env-2,
+//				Value: origin2,
+//			}
 //		}
-//	}
-//      other.Envs = []EnvVar{
-//		{
-//			Name: env-2,
-// 			Value: other2,
-//		},
-// 		{
-//			Name: env-3,
-//			Value: other3,
+//	     other.Envs = []EnvVar{
+//			{
+//				Name: env-2,
+//				Value: other2,
+//			},
+//			{
+//				Name: env-3,
+//				Value: other3,
+//			}
 //		}
-//	}
+//
 // 最终输出结果：
-//      origin.Envs = []EnvVar{
-//		{
-//			Name: env-1,
-//			Value: origin1,
-//		},
-// 		{
-//			Name: env-2,
-//			Value: origin2,
-//		},
-//		{
-//			Name: env-3,
-//			Value: other3,
+//
+//	     origin.Envs = []EnvVar{
+//			{
+//				Name: env-1,
+//				Value: origin1,
+//			},
+//			{
+//				Name: env-2,
+//				Value: origin2,
+//			},
+//			{
+//				Name: env-3,
+//				Value: other3,
+//			}
 //		}
-//	}
 func MergeEnvsInContainer(origin *v1.Container, other v1.Container) {
 	envExist := make(map[string]bool)
 	for _, env := range origin.Env {

@@ -46,6 +46,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	utilrand "k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
@@ -177,7 +178,9 @@ func (c *asiControl) NewVersionedPods(currentCS, updateCS *appsv1alpha1.CloneSet
 ) ([]*v1.Pod, error) {
 
 	var newPods []*v1.Pod
-	if c.Spec.UpdateStrategy.Type == appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType {
+	if c.Spec.UpdateStrategy.Type == appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType &&
+		// 现在要求支持 normandy 按百分比发布，并按照 partition 来扩容新旧版本的 Pod，因此该特殊逻辑仅在设置绝对值时启用
+		(c.Spec.UpdateStrategy.Partition == nil || c.Spec.UpdateStrategy.Partition.Type == intstr.Int) {
 		expectedCurrentCreations = 0
 	}
 
