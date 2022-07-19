@@ -75,6 +75,11 @@ if [ -z "$LIFECYCLE_READINESS_MODE" ]; then
 fi
 args="$args --lifecycle-readiness-mode=$LIFECYCLE_READINESS_MODE"
 
+if [ -z "$CLONESET_SCALING_EXCLUDE_PREPARING_DELETE" ]; then
+	CLONESET_SCALING_EXCLUDE_PREPARING_DELETE="true"
+fi
+args="$args --cloneset-scaling-exclude-preparing-delete=$CLONESET_SCALING_EXCLUDE_PREPARING_DELETE"
+
 pidof kruise-manager || {
   cd /home/admin/kruise
   for FILE in crds/*.yaml; do
