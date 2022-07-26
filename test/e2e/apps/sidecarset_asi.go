@@ -792,7 +792,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				},
 			}
 			ginkgo.By(fmt.Sprintf("Creating SidecarSet %s", sidecarSetIn.Name))
-			sidecarSetIn = tester.CreateSidecarSet(sidecarSetIn)
+			sidecarSetIn, _ = tester.CreateSidecarSet(sidecarSetIn)
 
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
@@ -852,7 +852,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				Type: appsv1alpha1.RollingUpdateSidecarSetStrategyType,
 			}
 			ginkgo.By(fmt.Sprintf("Creating SidecarSet %s", sidecarSetIn.Name))
-			sidecarSetIn = tester.CreateSidecarSet(sidecarSetIn)
+			sidecarSetIn, _ = tester.CreateSidecarSet(sidecarSetIn)
 
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
@@ -904,7 +904,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				Type: appsv1alpha1.RollingUpdateSidecarSetStrategyType,
 			}
 			ginkgo.By(fmt.Sprintf("Creating SidecarSet %s", sidecarSetIn.Name))
-			sidecarSetIn = tester.CreateSidecarSet(sidecarSetIn)
+			sidecarSetIn, _ = tester.CreateSidecarSet(sidecarSetIn)
 
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
@@ -958,7 +958,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				Type: appsv1alpha1.RollingUpdateSidecarSetStrategyType,
 			}
 			ginkgo.By(fmt.Sprintf("Creating SidecarSet %s", sidecarSetIn.Name))
-			sidecarSetIn = tester.CreateSidecarSet(sidecarSetIn)
+			sidecarSetIn, _ = tester.CreateSidecarSet(sidecarSetIn)
 
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
@@ -1042,7 +1042,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				Type: appsv1alpha1.RollingUpdateSidecarSetStrategyType,
 			}
 			ginkgo.By(fmt.Sprintf("Creating SidecarSet %s", sidecarSetIn.Name))
-			sidecarSetIn = tester.CreateSidecarSet(sidecarSetIn)
+			sidecarSetIn, _ = tester.CreateSidecarSet(sidecarSetIn)
 
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
@@ -1099,7 +1099,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				Type: appsv1alpha1.RollingUpdateSidecarSetStrategyType,
 			}
 			ginkgo.By(fmt.Sprintf("Creating SidecarSet %s", sidecarSetIn.Name))
-			sidecarSetIn = tester.CreateSidecarSet(sidecarSetIn)
+			sidecarSetIn, _ = tester.CreateSidecarSet(sidecarSetIn)
 
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
