@@ -80,10 +80,12 @@ if [ -z "$CLONESET_SCALING_EXCLUDE_PREPARING_DELETE" ]; then
 fi
 args="$args --cloneset-scaling-exclude-preparing-delete=$CLONESET_SCALING_EXCLUDE_PREPARING_DELETE"
 
+PATH=$PATH:$(pwd)/bin
+
 pidof kruise-manager || {
   cd /home/admin/kruise
   for FILE in crds/*.yaml; do
-    ./bin/kubectl replace -f $FILE || ./bin/kubectl create -f $FILE
+    kubectl replace -f $FILE || kubectl create -f $FILE
   done
   ./bin/kruise-manager ${args} 2>&1 | tee -a log/manager.log
 }

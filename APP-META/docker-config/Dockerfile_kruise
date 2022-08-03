@@ -1,9 +1,0 @@
-FROM centos:centos7
-
-RUN yum install ca-certificates net-tools iproute bind-utils openssh-clients cronie sysvinit-tools logrotate less -y && yum update -y
-
-WORKDIR /home/admin/kruise
-COPY pack/hack/logrotate /etc/cron.hourly/
-COPY pack/hack/logrotate.conf /etc/logrotate.d/kruise
-COPY pack/bins/ /home/admin/kruise/bin
-COPY pack/crds /home/admin/kruise/crds
