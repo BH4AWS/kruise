@@ -89,6 +89,9 @@ const (
 	// SidecarTerminator only works for the Pods with 'Never' or 'OnFailure' restartPolicy.
 	SidecarTerminator featuregate.Feature = "SidecarTerminator"
 
+	// DaemonAccessKubeletApi enables kruise-daemon to list pods against kubelet api.
+	DaemonAccessKubeletApi featuregate.Feature = "DaemonAccessKubeletApi"
+
 	// PodProbeMarkerGate enable Kruise provide the ability to execute custom Probes.
 	// Note: custom probe execution requires kruise daemon, so currently only traditional Kubelet is supported, not virtual-kubelet.
 	PodProbeMarkerGate featuregate.Feature = "PodProbeMarkerGate"
@@ -131,8 +134,9 @@ var defaultFeatureGates = map[featuregate.Feature]featuregate.FeatureSpec{
 	TemplateNoDefaults:                        {Default: false, PreRelease: featuregate.Alpha},
 	InPlaceUpdateEnvFromMetadata:              {Default: false, PreRelease: featuregate.Alpha},
 	StatefulSetAutoDeletePVC:                  {Default: false, PreRelease: featuregate.Alpha},
-	SidecarSetPatchPodMetadataDefaultsAllowed: {Default: false, PreRelease: featuregate.Alpha},
 	SidecarTerminator:                         {Default: false, PreRelease: featuregate.Alpha},
+	SidecarSetPatchPodMetadataDefaultsAllowed: {Default: false, PreRelease: featuregate.Alpha},
+	DaemonAccessKubeletApi:                    {Default: true, PreRelease: featuregate.Alpha},
 	PodProbeMarkerGate:                        {Default: false, PreRelease: featuregate.Alpha},
 	PreDownloadImageForDaemonSetUpdate:        {Default: false, PreRelease: featuregate.Alpha},
 	CloneSetEventHandlerOptimization:          {Default: false, PreRelease: featuregate.Alpha},

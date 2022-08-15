@@ -36,6 +36,7 @@ import (
 	daemonutil "github.com/openkruise/kruise/pkg/daemon/util"
 	"github.com/openkruise/kruise/pkg/features"
 	utilfeature "github.com/openkruise/kruise/pkg/util/feature"
+	"github.com/openkruise/kruise/pkg/daemon/containerexitpriority"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -122,6 +123,14 @@ func NewDaemon(cfg *rest.Config, bindAddress string) (Daemon, error) {
 		podInformer = newPodInformer(genericClient.KubeClient, nodeName)
 	}
 
+	// init kubelet client
+	if utilfeature.DefaultFeatureGate.Enabled(features.DaemonAccessKubeletApi) {
+		err = daemonutil.InitKubeletClient()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	accountManager := daemonutil.NewImagePullAccountManager(genericClient.KubeClient)
 	runtimeFactory, err := daemonruntime.NewFactory(varRunMountPath, accountManager)
 	if err != nil {
@@ -149,9 +158,16 @@ func NewDaemon(cfg *rest.Config, bindAddress string) (Daemon, error) {
 		return nil, fmt.Errorf("failed to new crr daemon controller: %v", err)
 	}
 
+	// container exit priority controller
+	exitController, err := containerexitpriority.NewController(opts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new exit priority daemon controller: %v", err)
+	}
+
 	var runnables = []Runnable{
 		puller,
 		crrController,
+		exitController,
 	}
 
 	// node pod probe

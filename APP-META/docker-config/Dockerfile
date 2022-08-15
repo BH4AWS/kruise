@@ -17,7 +17,8 @@ COPY APP-META/ APP-META/
 # Build
 ARG TARGETARCH
 RUN GOARCH=${TARGETARCH} CGO_ENABLED=0 GO111MODULE=on go build -mod=vendor -a -o APP-META/docker-config/pack/bins/kruise-manager main.go \
-    && GOARCH=${TARGETARCH} CGO_ENABLED=0 GO111MODULE=on go build -mod=vendor -a -o APP-META/docker-config/pack/bins/kruise-daemon ./cmd/daemon/main.go
+    && GOARCH=${TARGETARCH} CGO_ENABLED=0 GO111MODULE=on go build -mod=vendor -a -o APP-META/docker-config/pack/bins/kruise-daemon ./cmd/daemon/main.go \
+    && GOARCH=${TARGETARCH} CGO_ENABLED=0 GO111MODULE=on go build -mod=vendor -a -o APP-META/docker-config/pack/bins/entrypoint ./cmd/entrypoint/main.go
 
 FROM --platform=$TARGETPLATFORM openkruise-registry.cn-hangzhou.cr.aliyuncs.com/openkruise/centos:20220802
 
@@ -27,3 +28,4 @@ COPY --from=builder /workspace/APP-META/docker-config/pack/hack/logrotate /etc/c
 COPY --from=builder /workspace/APP-META/docker-config/pack/hack/logrotate.conf /etc/logrotate.d/kruise
 COPY --from=builder /workspace/APP-META/docker-config/pack/bins/ /home/admin/kruise/bin
 COPY --from=builder /workspace/APP-META/docker-config/pack/crds /home/admin/kruise/crds
+COPY --from=builder /workspace/APP-META/docker-config/pack/bins/entrypoint /entrypoint
