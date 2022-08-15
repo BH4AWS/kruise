@@ -149,9 +149,6 @@ func (c *asiControl) NeedToInjectInUpdatedPod(pod, oldPod *v1.Pod, sidecarContai
 func (c *asiControl) UpdatePodAnnotationsInUpgrade(changedContainers []string, pod *v1.Pod) {
 
 	sidecarSet := c.GetSidecarset()
-	// 1. sidecarSet hash in pod
-	updatePodSidecarSetHash(pod, sidecarSet)
-
 	// 2. 复用 inplaceSet 的 hash 来实现 "确认 pod 已升级"
 	podHash := pod.Annotations[sigmak8sapi.AnnotationPodSpecHash]
 	if !strings.Contains(podHash, GetSidecarSetRevision(sidecarSet)) {
