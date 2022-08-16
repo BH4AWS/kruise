@@ -199,15 +199,15 @@ func (c *asiControl) NewVersionedPods(currentCS, updateCS *appsv1alpha1.CloneSet
 	}
 
 	if expectedCreations <= expectedCurrentCreations {
-		newPods = c.newVersionedPods(currentCS, currentRevision, expectedCreations, &availableIDs)
+		newPods = c.newVersionedPods(currentCS, currentRevision, expectedCreations, &availableIDs, false)
 	} else {
-		newPods = c.newVersionedPods(currentCS, currentRevision, expectedCurrentCreations, &availableIDs)
-		newPods = append(newPods, c.newVersionedPods(updateCS, updateRevision, expectedCreations-expectedCurrentCreations, &availableIDs)...)
+		newPods = c.newVersionedPods(currentCS, currentRevision, expectedCurrentCreations, &availableIDs, false)
+		newPods = append(newPods, c.newVersionedPods(updateCS, updateRevision, expectedCreations-expectedCurrentCreations, &availableIDs, true)...)
 	}
 	return newPods, nil
 }
 
-func (c *asiControl) newVersionedPods(cs *appsv1alpha1.CloneSet, revision string, replicas int, availableIDs *[]string) []*v1.Pod {
+func (c *asiControl) newVersionedPods(cs *appsv1alpha1.CloneSet, revision string, replicas int, availableIDs *[]string, isUpdateRevision bool) []*v1.Pod {
 	if replicas <= 0 {
 		return nil
 	}
@@ -221,6 +221,18 @@ func (c *asiControl) newVersionedPods(cs *appsv1alpha1.CloneSet, revision string
 		klog.Warningf("CloneSet %s/%s failed to get InPlaceSet config for newPod: %v", c.Namespace, c.Name, err)
 	} else if inPlaceSetConfig.EnableAliProcHook {
 		additionalEnvs, additionalLabels = c.getAdditionalPodConfig(&cs.Spec.Template.ObjectMeta, gClient)
+	}
+
+	if isUpdateRevision {
+		if additionalLabels == nil {
+			additionalLabels = map[string]string{}
+		}
+		if rolloutId, ok := c.Labels[apiinternal.LabelRolloutId]; ok {
+			additionalLabels[apiinternal.LabelRolloutId] = rolloutId
+		}
+		if rolloutBatchId, ok := c.Labels[apiinternal.LabelRolloutBatchId]; ok {
+			additionalLabels[apiinternal.LabelRolloutBatchId] = rolloutBatchId
+		}
 	}
 
 	var newPods []*v1.Pod
