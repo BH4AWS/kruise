@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM --platform=$BUILDPLATFORM openkruise-registry.cn-hangzhou.cr.aliyuncs.com/openkruise/golang:1.17 as builder
+FROM --platform=$BUILDPLATFORM openkruise-registry.cn-shanghai.cr.aliyuncs.com/openkruise/golang:1.17 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -20,7 +20,7 @@ RUN GOARCH=${TARGETARCH} CGO_ENABLED=0 GO111MODULE=on go build -mod=vendor -a -o
     && GOARCH=${TARGETARCH} CGO_ENABLED=0 GO111MODULE=on go build -mod=vendor -a -o APP-META/docker-config/pack/bins/kruise-daemon ./cmd/daemon/main.go \
     && GOARCH=${TARGETARCH} CGO_ENABLED=0 GO111MODULE=on go build -mod=vendor -a -o APP-META/docker-config/pack/bins/entrypoint ./cmd/entrypoint/main.go
 
-FROM --platform=$TARGETPLATFORM openkruise-registry.cn-hangzhou.cr.aliyuncs.com/openkruise/centos:20220802
+FROM --platform=$TARGETPLATFORM openkruise-registry.cn-shanghai.cr.aliyuncs.com/openkruise/centos:20220802
 
 WORKDIR /home/admin/kruise
 
