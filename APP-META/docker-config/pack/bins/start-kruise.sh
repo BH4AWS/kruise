@@ -65,6 +65,11 @@ if [ -z "$PUB_WORKERS" ]; then
 fi
 args="$args --podunavailablebudget-workers=$PUB_WORKERS"
 
+if [ -z "$WORKLOADSPREAD_WORKERS" ]; then
+	WORKLOADSPREAD_WORKERS="20"
+fi
+args="$args --workloadspread-workers=$WORKLOADSPREAD_WORKERS"
+
 if [ -z "$PUB_MODE" ]; then
 	PUB_MODE="asi"
 fi
