@@ -93,7 +93,7 @@ spec:
                         description: Specification of the desired behavior of the broadcastjob.
                         properties:
                           completionPolicy:
-                            description: CompletionPolicy indicates the completion policy of the job. Default is Always CompletionPolicyType
+                            description: CompletionPolicy indicates the completion policy of the job. Default is Always CompletionPolicyType.
                             properties:
                               activeDeadlineSeconds:
                                 description: ActiveDeadlineSeconds specifies the duration in seconds relative to the startTime that the job may be active before the system tries to terminate it; value must be positive integer. Only works for Always type.
@@ -104,7 +104,7 @@ spec:
                                 format: int32
                                 type: integer
                               type:
-                                description: Type indicates the type of the CompletionPolicy Default is Always
+                                description: Type indicates the type of the CompletionPolicy. Default is Always.
                                 type: string
                             type: object
                           failurePolicy:
@@ -115,7 +115,7 @@ spec:
                                 format: int32
                                 type: integer
                               type:
-                                description: Type indicates the type of FailurePolicyType.
+                                description: Type indicates the type of FailurePolicyType. Default is FailurePolicyTypeFailFast.
                                 type: string
                             type: object
                           parallelism:
@@ -138,6 +138,9 @@ spec:
                     description: Specifies the job that will be created when executing a CronJob.
                     x-kubernetes-preserve-unknown-fields: true
                 type: object
+              timeZone:
+                description: The time zone name for the given schedule, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones. If not specified, this will default to the time zone of the kruise-controller-manager process.
+                type: string
             required:
             - schedule
             - template

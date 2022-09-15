@@ -19,11 +19,10 @@ package validating
 import (
 	"testing"
 
-	v1 "k8s.io/api/core/v1"
-
-	batchv1 "k8s.io/api/batch/v1"
-
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
+	batchv1 "k8s.io/api/batch/v1"
+	batchv1beta1 "k8s.io/api/batch/v1beta1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/pointer"
 )
@@ -51,7 +50,7 @@ func TestValidateCronJobSpec(t *testing.T) {
 				TimeZone:          nil,
 				ConcurrencyPolicy: appsv1alpha1.AllowConcurrent,
 				Template: appsv1alpha1.CronJobTemplate{
-					JobTemplate: &batchv1.JobTemplateSpec{
+					JobTemplate: &batchv1beta1.JobTemplateSpec{
 						Spec: batchv1.JobSpec{
 							Template: validPodTemplateSpec,
 						},
@@ -65,7 +64,7 @@ func TestValidateCronJobSpec(t *testing.T) {
 				TimeZone:          pointer.String("America/New_York"),
 				ConcurrencyPolicy: appsv1alpha1.AllowConcurrent,
 				Template: appsv1alpha1.CronJobTemplate{
-					JobTemplate: &batchv1.JobTemplateSpec{
+					JobTemplate: &batchv1beta1.JobTemplateSpec{
 						Spec: batchv1.JobSpec{
 							Template: validPodTemplateSpec,
 						},
@@ -79,7 +78,7 @@ func TestValidateCronJobSpec(t *testing.T) {
 				TimeZone:          pointer.String("broken"),
 				ConcurrencyPolicy: appsv1alpha1.AllowConcurrent,
 				Template: appsv1alpha1.CronJobTemplate{
-					JobTemplate: &batchv1.JobTemplateSpec{
+					JobTemplate: &batchv1beta1.JobTemplateSpec{
 						Spec: batchv1.JobSpec{
 							Template: validPodTemplateSpec,
 						},

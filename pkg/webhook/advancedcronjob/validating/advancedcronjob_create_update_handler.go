@@ -28,7 +28,7 @@ import (
 	webhookutil "github.com/openkruise/kruise/pkg/webhook/util"
 	"github.com/robfig/cron/v3"
 	admissionv1 "k8s.io/api/admission/v1"
-	batchv1 "k8s.io/api/batch/v1"
+	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	v1 "k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	genericvalidation "k8s.io/apimachinery/pkg/api/validation"
@@ -143,7 +143,7 @@ func validateAdvancedCronJobSpecTemplate(spec *appsv1alpha1.AdvancedCronJobSpec,
 	return allErrs
 }
 
-func validateJobTemplateSpec(jobSpec *batchv1.JobTemplateSpec, fldPath *field.Path) field.ErrorList {
+func validateJobTemplateSpec(jobSpec *batchv1beta1.JobTemplateSpec, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 	coreTemplate, err := convertPodTemplateSpec(&jobSpec.Spec.Template)
 	if err != nil {

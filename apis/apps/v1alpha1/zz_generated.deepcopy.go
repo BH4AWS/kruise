@@ -24,8 +24,8 @@ package v1alpha1
 import (
 	"github.com/openkruise/kruise/apis/apps/pub"
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/api/batch/v1"
-	corev1 "k8s.io/api/core/v1"
+	"k8s.io/api/batch/v1beta1"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -156,7 +156,7 @@ func (in *AdvancedCronJobStatus) DeepCopyInto(out *AdvancedCronJobStatus) {
 	*out = *in
 	if in.Active != nil {
 		in, out := &in.Active, &out.Active
-		*out = make([]corev1.ObjectReference, len(*in))
+		*out = make([]v1.ObjectReference, len(*in))
 		copy(*out, *in)
 	}
 	if in.LastScheduleTime != nil {
@@ -442,7 +442,7 @@ func (in *CloneSetSpec) DeepCopyInto(out *CloneSetSpec) {
 	in.Template.DeepCopyInto(&out.Template)
 	if in.VolumeClaimTemplates != nil {
 		in, out := &in.VolumeClaimTemplates, &out.VolumeClaimTemplates
-		*out = make([]corev1.PersistentVolumeClaim, len(*in))
+		*out = make([]v1.PersistentVolumeClaim, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
@@ -671,7 +671,7 @@ func (in *ContainerRecreateRequestContainer) DeepCopyInto(out *ContainerRecreate
 	}
 	if in.Ports != nil {
 		in, out := &in.Ports, &out.Ports
-		*out = make([]corev1.ContainerPort, len(*in))
+		*out = make([]v1.ContainerPort, len(*in))
 		copy(*out, *in)
 	}
 	if in.StatusContext != nil {
@@ -859,7 +859,7 @@ func (in *CronJobTemplate) DeepCopyInto(out *CronJobTemplate) {
 	*out = *in
 	if in.JobTemplate != nil {
 		in, out := &in.JobTemplate, &out.JobTemplate
-		*out = new(v1.JobTemplateSpec)
+		*out = new(v1beta1.JobTemplateSpec)
 		(*in).DeepCopyInto(*out)
 	}
 	if in.BroadcastJobTemplate != nil {
@@ -1044,7 +1044,7 @@ func (in *EphemeralContainerTemplateSpec) DeepCopyInto(out *EphemeralContainerTe
 	*out = *in
 	if in.EphemeralContainers != nil {
 		in, out := &in.EphemeralContainers, &out.EphemeralContainers
-		*out = make([]corev1.EphemeralContainer, len(*in))
+		*out = make([]v1.EphemeralContainer, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
@@ -1641,7 +1641,7 @@ func (in *ImageTagSpec) DeepCopyInto(out *ImageTagSpec) {
 	}
 	if in.OwnerReferences != nil {
 		in, out := &in.OwnerReferences, &out.OwnerReferences
-		*out = make([]corev1.ObjectReference, len(*in))
+		*out = make([]v1.ObjectReference, len(*in))
 		copy(*out, *in)
 	}
 }
@@ -2341,17 +2341,17 @@ func (in *ProbeHandler) DeepCopyInto(out *ProbeHandler) {
 	*out = *in
 	if in.Exec != nil {
 		in, out := &in.Exec, &out.Exec
-		*out = new(corev1.ExecAction)
+		*out = new(v1.ExecAction)
 		(*in).DeepCopyInto(*out)
 	}
 	if in.HTTPGet != nil {
 		in, out := &in.HTTPGet, &out.HTTPGet
-		*out = new(corev1.HTTPGetAction)
+		*out = new(v1.HTTPGetAction)
 		(*in).DeepCopyInto(*out)
 	}
 	if in.TCPSocket != nil {
 		in, out := &in.TCPSocket, &out.TCPSocket
-		*out = new(corev1.TCPSocketAction)
+		*out = new(v1.TCPSocketAction)
 		**out = **in
 	}
 }
@@ -2926,7 +2926,7 @@ func (in *SidecarSetSpec) DeepCopyInto(out *SidecarSetSpec) {
 	}
 	if in.Volumes != nil {
 		in, out := &in.Volumes, &out.Volumes
-		*out = make([]corev1.Volume, len(*in))
+		*out = make([]v1.Volume, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
@@ -2935,7 +2935,7 @@ func (in *SidecarSetSpec) DeepCopyInto(out *SidecarSetSpec) {
 	in.InjectionStrategy.DeepCopyInto(&out.InjectionStrategy)
 	if in.ImagePullSecrets != nil {
 		in, out := &in.ImagePullSecrets, &out.ImagePullSecrets
-		*out = make([]corev1.LocalObjectReference, len(*in))
+		*out = make([]v1.LocalObjectReference, len(*in))
 		copy(*out, *in)
 	}
 	if in.RevisionHistoryLimit != nil {
@@ -3027,7 +3027,7 @@ func (in *SourceContainerNameSource) DeepCopyInto(out *SourceContainerNameSource
 	*out = *in
 	if in.FieldRef != nil {
 		in, out := &in.FieldRef, &out.FieldRef
-		*out = new(corev1.ObjectFieldSelector)
+		*out = new(v1.ObjectFieldSelector)
 		**out = **in
 	}
 }
@@ -3117,7 +3117,7 @@ func (in *StatefulSetSpec) DeepCopyInto(out *StatefulSetSpec) {
 	in.Template.DeepCopyInto(&out.Template)
 	if in.VolumeClaimTemplates != nil {
 		in, out := &in.VolumeClaimTemplates, &out.VolumeClaimTemplates
-		*out = make([]corev1.PersistentVolumeClaim, len(*in))
+		*out = make([]v1.PersistentVolumeClaim, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
@@ -3210,7 +3210,7 @@ func (in *Subset) DeepCopyInto(out *Subset) {
 	in.NodeSelectorTerm.DeepCopyInto(&out.NodeSelectorTerm)
 	if in.Tolerations != nil {
 		in, out := &in.Tolerations, &out.Tolerations
-		*out = make([]corev1.Toleration, len(*in))
+		*out = make([]v1.Toleration, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
@@ -3733,19 +3733,19 @@ func (in *WorkloadSpreadSubset) DeepCopyInto(out *WorkloadSpreadSubset) {
 	*out = *in
 	if in.RequiredNodeSelectorTerm != nil {
 		in, out := &in.RequiredNodeSelectorTerm, &out.RequiredNodeSelectorTerm
-		*out = new(corev1.NodeSelectorTerm)
+		*out = new(v1.NodeSelectorTerm)
 		(*in).DeepCopyInto(*out)
 	}
 	if in.PreferredNodeSelectorTerms != nil {
 		in, out := &in.PreferredNodeSelectorTerms, &out.PreferredNodeSelectorTerms
-		*out = make([]corev1.PreferredSchedulingTerm, len(*in))
+		*out = make([]v1.PreferredSchedulingTerm, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 	if in.Tolerations != nil {
 		in, out := &in.Tolerations, &out.Tolerations
-		*out = make([]corev1.Toleration, len(*in))
+		*out = make([]v1.Toleration, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}

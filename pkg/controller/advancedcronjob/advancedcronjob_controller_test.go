@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	batchv1 "k8s.io/api/batch/v1"
+	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -241,7 +242,7 @@ func broadcastJobTemplate() appsv1alpha1.CronJobTemplate {
 
 func jobTemplate() appsv1alpha1.CronJobTemplate {
 	return appsv1alpha1.CronJobTemplate{
-		JobTemplate: &batchv1.JobTemplateSpec{
+		JobTemplate: &batchv1beta1.JobTemplateSpec{
 			Spec: batchv1.JobSpec{
 				Template: v1.PodTemplateSpec{
 					Spec: v1.PodSpec{},
