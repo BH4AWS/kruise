@@ -96,7 +96,7 @@ func (c *asiControl) IsPodUnavailableChanged(oldPod, newPod *corev1.Pod) bool {
 		return true
 	}
 	// If pod.spec changed, pod will be in unavailable condition
-	if utilasi.GetPodSpecHash(oldPod) != utilasi.GetPodSpecHash(newPod) {
+	if utilasi.GetPodSpecHashString(oldPod) != utilasi.GetPodSpecHashString(newPod) {
 		klog.V(3).Infof("pod(%s.%s) spec hash changed, and maybe cause unavailability", newPod.Namespace, newPod.Name)
 		return true
 	}

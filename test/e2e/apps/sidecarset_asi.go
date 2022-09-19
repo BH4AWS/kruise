@@ -27,9 +27,9 @@ import (
 	kruiseclientset "github.com/openkruise/kruise/pkg/client/clientset/versioned"
 	"github.com/openkruise/kruise/pkg/control/sidecarcontrol"
 	"github.com/openkruise/kruise/pkg/util"
+	"github.com/openkruise/kruise/pkg/utilasi"
 	"github.com/openkruise/kruise/pkg/utilasi/commontypes"
 	"github.com/openkruise/kruise/test/e2e/framework"
-	sigmak8sapi "gitlab.alibaba-inc.com/sigma/sigma-k8s-api/pkg/api"
 	sigmakruiseapi "gitlab.alibaba-inc.com/sigma/sigma-k8s-api/pkg/kruise"
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -715,7 +715,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				Name:  "TEST_ENV",
 				Value: "value-1",
 			})
-			newPod.Annotations[sigmak8sapi.AnnotationPodSpecHash] = fmt.Sprintf("%s-v2", ns)
+			utilasi.SetUpdateSpecHash(newPod, fmt.Sprintf("%s-v2", ns))
 			gomega.Expect(newPod.Spec.Containers).To(gomega.HaveLen(1))
 			tester.UpdatePod(newPod)
 			time.Sleep(time.Second * 2)
@@ -746,7 +746,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 					},
 				},
 			}
-			newPod.Annotations[sigmak8sapi.AnnotationPodSpecHash] = fmt.Sprintf("%s-v3", ns)
+			utilasi.SetUpdateSpecHash(newPod, fmt.Sprintf("%s-v3", ns))
 			gomega.Expect(newPod.Spec.Containers).To(gomega.HaveLen(1))
 			tester.UpdatePod(newPod)
 			time.Sleep(time.Second * 2)

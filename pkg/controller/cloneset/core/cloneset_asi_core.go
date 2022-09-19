@@ -26,9 +26,8 @@ import (
 	"strings"
 	"time"
 
-	appspub "github.com/openkruise/kruise/apis/apps/pub"
-
 	"github.com/appscode/jsonpatch"
+	appspub "github.com/openkruise/kruise/apis/apps/pub"
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	"github.com/openkruise/kruise/pkg/controller/cloneset/apiinternal"
 	clonesetutils "github.com/openkruise/kruise/pkg/controller/cloneset/utils"
@@ -246,7 +245,6 @@ func (c *asiControl) newVersionedPods(cs *appsv1alpha1.CloneSet, revision string
 		}
 		pod.Namespace = cs.Namespace
 		pod.Labels[apps.ControllerRevisionHashLabelKey] = revision
-		pod.Annotations[sigmak8sapi.AnnotationPodSpecHash] = revision
 
 		if cs.Spec.UpdateStrategy.Type == appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType {
 			if cs.Annotations[sigmakruiseapi.AnnotationCloneSetUsePodGenerateName] != "true" {
@@ -549,7 +547,9 @@ func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSp
 	pod.Labels[apiinternal.LabelPodUpgradingState] = apiinternal.PodUpgradingExecuting
 	pod.Labels[apiinternal.LabelFinalStateUpgrading] = "true"
 	pod.Labels[apps.StatefulSetRevisionLabel] = spec.Revision
-	pod.Annotations[sigmak8sapi.AnnotationPodSpecHash] = fmt.Sprintf("%s_%d", spec.Revision, now.UnixNano())
+	if pod.Labels[apiinternal.LabelScheduleNodeName] != "" {
+		utilasi.SetUpdateSpecHash(pod, fmt.Sprintf("%s_%d", spec.Revision, now.UnixNano()))
+	}
 
 	if c.Spec.Template.Spec.TerminationGracePeriodSeconds != nil {
 		terminationSeconds := *c.Spec.Template.Spec.TerminationGracePeriodSeconds

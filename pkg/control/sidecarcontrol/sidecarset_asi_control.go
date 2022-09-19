@@ -150,13 +150,13 @@ func (c *asiControl) UpdatePodAnnotationsInUpgrade(changedContainers []string, p
 
 	sidecarSet := c.GetSidecarset()
 	// 2. 复用 inplaceSet 的 hash 来实现 "确认 pod 已升级"
-	podHash := pod.Annotations[sigmak8sapi.AnnotationPodSpecHash]
-	if !strings.Contains(podHash, GetSidecarSetRevision(sidecarSet)) {
-		pod.Annotations[sigmak8sapi.AnnotationPodSpecHash] =
-			fmt.Sprintf("%v-sidecarset", GetSidecarSetRevision(sidecarSet))
-	} else {
-		pod.Annotations[sigmak8sapi.AnnotationPodSpecHash] =
-			fmt.Sprintf("%v-sidecarset-flip", GetSidecarSetRevision(sidecarSet))
+	if pod.Labels[apiinternal.LabelScheduleNodeName] != "" {
+		revision := GetSidecarSetRevision(sidecarSet)
+		if !strings.Contains(utilasi.GetPodSpecHashString(pod), revision) {
+			utilasi.SetUpdateSpecHash(pod, fmt.Sprintf("%v-sidecarset", revision))
+		} else {
+			utilasi.SetUpdateSpecHash(pod, fmt.Sprintf("%v-sidecarset-flip", revision))
+		}
 	}
 
 	// 3. 按照 inplaceSet 的升级规范来更新 label
@@ -265,17 +265,21 @@ func (c *asiControl) IsSidecarSetUpgradable(pod *v1.Pod) bool {
 	for _, status := range pod.Status.ContainerStatuses {
 		cStatus[status.Name] = status.Ready
 	}
-	updateStatus := utilasi.GetPodUpdatedSpecHashes(pod)
-	podSpecHash := utilasi.GetPodSpecHash(pod)
+
 	sidecarContainerList := GetSidecarContainersInPod(c.GetSidecarset())
+	containersToCheckConsistent := sets.NewString()
+	// when containerStatus.Ready == true and container non-consistent,
+	// indicates that sidecar container is in the process of being upgraded
+	// wait for the last upgrade to complete before performing this upgrade
 	for _, sidecar := range sidecarContainerList.List() {
-		// when containerStatus.Ready == true and container non-consistent,
-		// indicates that sidecar container is in the process of being upgraded
-		// wait for the last upgrade to complete before performing this upgrade
-		if cStatus[sidecar] && updateStatus[sidecar] != "" && updateStatus[sidecar] != podSpecHash {
-			return false
+		if cStatus[sidecar] {
+			containersToCheckConsistent.Insert(sidecar)
 		}
 	}
+	if !utilasi.IsPodSpecHashPartConsistent(pod, containersToCheckConsistent) {
+		return false
+	}
+
 	// If the sidecar container name changes, the Pod cannot be upgraded
 	if isSidecarContainersChanged(sidecarSet, pod) {
 		return false

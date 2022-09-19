@@ -12,7 +12,6 @@ import (
 	clonesetutils "github.com/openkruise/kruise/pkg/controller/cloneset/utils"
 	"github.com/openkruise/kruise/pkg/util/inplaceupdate"
 	"github.com/openkruise/kruise/pkg/utilasi"
-	sigmak8sapi "gitlab.alibaba-inc.com/sigma/sigma-k8s-api/pkg/api"
 	apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -99,7 +98,9 @@ func (c *asiControl) adoptPodsAndPVCsFromPool(replicas int, revision string, poo
 		pod.Labels[apiinternal.LabelPodUpgradingState] = apiinternal.PodUpgradingExecuting
 		pod.Labels[apiinternal.LabelFinalStateUpgrading] = "true"
 		pod.Labels[apps.StatefulSetRevisionLabel] = revision
-		pod.Annotations[sigmak8sapi.AnnotationPodSpecHash] = revision
+		if pod.Labels[apiinternal.LabelScheduleNodeName] != "" {
+			utilasi.SetUpdateSpecHash(pod, revision)
+		}
 
 		// 4. 更新 patchTemplate
 		if patchTemplate.Raw != nil {

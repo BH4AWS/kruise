@@ -42,7 +42,7 @@ func setSidecarSetASI(sidecarset *appsv1alpha1.SidecarSet) {
 }
 
 func setPodUpdateStatus(pod *corev1.Pod) {
-	podHash := utilasi.GetPodSpecHash(pod)
+	podHash := utilasi.GetPodSpecHashString(pod)
 	updateStatus := sigmak8sapi.ContainerStateStatus{
 		Statuses: map[sigmak8sapi.ContainerInfo]sigmak8sapi.ContainerStatus{},
 	}

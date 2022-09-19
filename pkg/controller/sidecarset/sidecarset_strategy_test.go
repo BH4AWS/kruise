@@ -26,6 +26,7 @@ import (
 	appspub "github.com/openkruise/kruise/apis/apps/pub"
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	"github.com/openkruise/kruise/pkg/control/sidecarcontrol"
+	"github.com/openkruise/kruise/pkg/controller/cloneset/apiinternal"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,7 +50,8 @@ func factoryPodsCommon(count, upgraded int, sidecarSet *appsv1alpha1.SidecarSet)
 				},
 				Name: fmt.Sprintf("pod-%d", i),
 				Labels: map[string]string{
-					"app": "sidecar",
+					"app":                             "sidecar",
+					apiinternal.LabelScheduleNodeName: "fake-node",
 				},
 				CreationTimestamp: metav1.Now(),
 			},

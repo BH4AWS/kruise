@@ -22,6 +22,7 @@ import (
 
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	"github.com/openkruise/kruise/pkg/control/sidecarcontrol"
+	"github.com/openkruise/kruise/pkg/controller/cloneset/apiinternal"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -82,7 +83,10 @@ var (
 			},
 			Name:      "test-pod",
 			Namespace: "default",
-			Labels:    map[string]string{"app": "nginx"},
+			Labels: map[string]string{
+				"app":                             "nginx",
+				apiinternal.LabelScheduleNodeName: "fake-node",
+			},
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
