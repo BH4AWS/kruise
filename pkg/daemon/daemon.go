@@ -27,6 +27,7 @@ import (
 
 	kruiseapis "github.com/openkruise/kruise/apis"
 	"github.com/openkruise/kruise/pkg/client"
+	"github.com/openkruise/kruise/pkg/daemon/containerexitpriority"
 	"github.com/openkruise/kruise/pkg/daemon/containermeta"
 	"github.com/openkruise/kruise/pkg/daemon/containerrecreate"
 	daemonruntime "github.com/openkruise/kruise/pkg/daemon/criruntime"
@@ -36,7 +37,6 @@ import (
 	daemonutil "github.com/openkruise/kruise/pkg/daemon/util"
 	"github.com/openkruise/kruise/pkg/features"
 	utilfeature "github.com/openkruise/kruise/pkg/util/feature"
-	"github.com/openkruise/kruise/pkg/daemon/containerexitpriority"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

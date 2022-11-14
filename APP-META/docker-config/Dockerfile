@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM --platform=$BUILDPLATFORM openkruise-registry.cn-shanghai.cr.aliyuncs.com/openkruise/golang:1.17 as builder
+FROM --platform=$BUILDPLATFORM openkruise-registry.cn-shanghai.cr.aliyuncs.com/openkruise/golang:1.18 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests

@@ -811,7 +811,7 @@ func TestSyncPodProbeMarker(t *testing.T) {
 	}
 }
 
-func checkNodePodProbeEqual(c client.WithWatch, t *testing.T, expect []*appsv1alpha1.NodePodProbe) bool {
+func checkNodePodProbeEqual(c client.Client, t *testing.T, expect []*appsv1alpha1.NodePodProbe) bool {
 	for i := range expect {
 		obj := expect[i]
 		npp := &appsv1alpha1.NodePodProbe{}

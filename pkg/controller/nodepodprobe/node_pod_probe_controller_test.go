@@ -540,7 +540,7 @@ func TestSyncNodePodProbe(t *testing.T) {
 	}
 }
 
-func checkPodMarkerEqual(c client.WithWatch, t *testing.T, expect []*corev1.Pod) bool {
+func checkPodMarkerEqual(c client.Client, t *testing.T, expect []*corev1.Pod) bool {
 	for i := range expect {
 		obj := expect[i]
 		pod := &corev1.Pod{}
@@ -802,7 +802,7 @@ func TestSyncPodFromNodePodProbe(t *testing.T) {
 	}
 }
 
-func checkNodePodProbeEqual(c client.WithWatch, t *testing.T, expect []*appsv1alpha1.NodePodProbe) bool {
+func checkNodePodProbeEqual(c client.Client, t *testing.T, expect []*appsv1alpha1.NodePodProbe) bool {
 	for i := range expect {
 		obj := expect[i]
 		npp := &appsv1alpha1.NodePodProbe{}
