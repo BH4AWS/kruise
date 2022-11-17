@@ -17,6 +17,7 @@ limitations under the License.
 package podreadiness
 
 import (
+	"flag"
 	"sort"
 
 	appspub "github.com/openkruise/kruise/apis/apps/pub"
@@ -25,6 +26,12 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+var mode string
+
+func init() {
+	flag.StringVar(&mode, "pod-readiness-mode", mode, "pod readiness mode asi or default")
+}
+
 type Interface interface {
 	ContainsReadinessGate(pod *v1.Pod) bool
 	AddNotReadyKey(pod *v1.Pod, msg Message) error
@@ -32,6 +39,9 @@ type Interface interface {
 }
 
 func NewForAdapter(adp podadapter.Adapter) Interface {
+	if mode == "asi" {
+		return &asiControl{adp: adp}
+	}
 	return &commonControl{adp: adp}
 }
 

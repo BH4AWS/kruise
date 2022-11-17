@@ -33,8 +33,10 @@ type asiControl struct {
 	adp podadapter.Adapter
 }
 
-func NewASIForAdapter(adp podadapter.Adapter) Interface {
-	return &asiControl{adp: adp}
+// ContainsReadinessGate always return true, because if the Pod doesn't
+// have KruisePodReady gate, asiControl will try to inject one to it.
+func (c *asiControl) ContainsReadinessGate(pod *v1.Pod) bool {
+	return true
 }
 
 func (c *asiControl) AddNotReadyKey(pod *v1.Pod, msg Message) error {

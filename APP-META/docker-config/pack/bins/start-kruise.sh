@@ -75,10 +75,10 @@ if [ -z "$PUB_MODE" ]; then
 fi
 args="$args --pub-mode=$PUB_MODE"
 
-if [ -z "$LIFECYCLE_READINESS_MODE" ]; then
-	LIFECYCLE_READINESS_MODE="asi"
+if [ -z "$POD_READINESS_MODE" ]; then
+	POD_READINESS_MODE="asi"
 fi
-args="$args --lifecycle-readiness-mode=$LIFECYCLE_READINESS_MODE"
+args="$args --pod-readiness-mode=$POD_READINESS_MODE"
 
 if [ -z "$CLONESET_SCALING_EXCLUDE_PREPARING_DELETE" ]; then
 	CLONESET_SCALING_EXCLUDE_PREPARING_DELETE="true"
