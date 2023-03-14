@@ -78,7 +78,7 @@ func TestContainerExitPriorityMutatingPod(t *testing.T) {
 				demo.Annotations[containerexitpriority.AutoInjectContainerExitPriorityPreStopAnnotation] = "true"
 				demo.Annotations[containerexitpriority.PodContainerExitPriorityAnnotation] = `{"log": 2, "envoy": 1}`
 				demo.Spec.Containers[2].Lifecycle = &corev1.Lifecycle{
-					PreStop: &corev1.Handler{
+					PreStop: &corev1.LifecycleHandler{
 						Exec: &corev1.ExecAction{
 							Command: []string{
 								"/bin/bash",
@@ -107,7 +107,7 @@ func TestContainerExitPriorityMutatingPod(t *testing.T) {
 					},
 				}
 				expect.Spec.Containers[1].Lifecycle = &corev1.Lifecycle{
-					PreStop: &corev1.Handler{
+					PreStop: &corev1.LifecycleHandler{
 						Exec: &corev1.ExecAction{
 							Command: []string{
 								path.Join(containerexitpriority.KruiseDaemonShareRootVolume, "entrypoint"),
@@ -134,7 +134,7 @@ func TestContainerExitPriorityMutatingPod(t *testing.T) {
 					},
 				}
 				expect.Spec.Containers[2].Lifecycle = &corev1.Lifecycle{
-					PreStop: &corev1.Handler{
+					PreStop: &corev1.LifecycleHandler{
 						Exec: &corev1.ExecAction{
 							Command: []string{
 								path.Join(containerexitpriority.KruiseDaemonShareRootVolume, "entrypoint"),

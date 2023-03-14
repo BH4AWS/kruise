@@ -975,6 +975,49 @@ func parsePodReason(pod *v1.Pod) string {
 	return reason
 }
 
+func (c *asiControl) IgnorePodUpdateEvent(oldPod, curPod *v1.Pod) bool {
+	if utilasi.GetPodSpecHashString(curPod) == "" {
+		return false
+	}
+
+	if curPod.Generation != oldPod.Generation {
+		return false
+	}
+
+	if lifecycleFinalizerChanged(c.CloneSet, oldPod, curPod) {
+		return false
+	}
+
+	if c.IsPodUpdatePaused(oldPod) != c.IsPodUpdatePaused(curPod) {
+		return false
+	}
+
+	if c.IsPodUpdateReady(oldPod, c.Spec.MinReadySeconds) != c.IsPodUpdateReady(curPod, c.Spec.MinReadySeconds) {
+		return false
+	}
+
+	containsReadinessGate := func(pod *v1.Pod) bool {
+		for _, r := range pod.Spec.ReadinessGates {
+			if r.ConditionType == appspub.InPlaceUpdateReady {
+				return true
+			}
+		}
+		return false
+	}
+
+	if containsReadinessGate(curPod) {
+		opts := c.GetUpdateOptions()
+		opts = inplaceupdate.SetOptionsDefaults(opts)
+		if err := opts.CheckPodUpdateCompleted(curPod); err == nil {
+			if cond := inplaceupdate.GetCondition(curPod); cond == nil || cond.Status != v1.ConditionTrue {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
 func isIgnoredContainer(pod *v1.Pod, name string) bool {
 	if name == "" || pod == nil {
 		return true

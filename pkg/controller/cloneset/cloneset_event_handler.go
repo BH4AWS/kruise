@@ -30,7 +30,6 @@ import (
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -207,30 +206,6 @@ func (e *podEventHandler) Delete(evt event.DeleteEvent, q workqueue.RateLimiting
 
 func (e *podEventHandler) Generic(evt event.GenericEvent, q workqueue.RateLimitingInterface) {
 
-}
-
-func lifecycleFinalizerChanged(cs *appsv1alpha1.CloneSet, oldPod, curPod *v1.Pod) bool {
-	if cs.Spec.Lifecycle == nil {
-		return false
-	}
-
-	if cs.Spec.Lifecycle.PreDelete != nil {
-		for _, f := range cs.Spec.Lifecycle.PreDelete.FinalizersHandler {
-			if controllerutil.ContainsFinalizer(oldPod, f) != controllerutil.ContainsFinalizer(curPod, f) {
-				return true
-			}
-		}
-	}
-
-	if cs.Spec.Lifecycle.InPlaceUpdate != nil {
-		for _, f := range cs.Spec.Lifecycle.InPlaceUpdate.FinalizersHandler {
-			if controllerutil.ContainsFinalizer(oldPod, f) != controllerutil.ContainsFinalizer(curPod, f) {
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 func resolveControllerRef(namespace string, controllerRef *metav1.OwnerReference) *reconcile.Request {

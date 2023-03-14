@@ -102,7 +102,7 @@ func (h *PodCreateHandler) containerExitPriorityMutatingPod(ctx context.Context,
 				container.Lifecycle = &corev1.Lifecycle{}
 			}
 			if container.Lifecycle.PreStop == nil {
-				container.Lifecycle.PreStop = &corev1.Handler{}
+				container.Lifecycle.PreStop = &corev1.LifecycleHandler{}
 			}
 			if container.Lifecycle.PreStop.Exec == nil {
 				container.Lifecycle.PreStop.Exec = &corev1.ExecAction{}
