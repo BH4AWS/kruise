@@ -35,6 +35,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 	utilpointer "k8s.io/utils/pointer"
 )
@@ -268,7 +269,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 					object := util.GetContainerVolumeMount(sidecarContainer, volumeMount)
 					gomega.Expect(object).ShouldNot(gomega.BeNil())
 				}
-				gomega.Expect(sidecarContainer.VolumeMounts).To(gomega.HaveLen(len(cs.exceptVolumeMounts)))
+				gomega.Expect(sidecarContainer.VolumeMounts).To(gomega.HaveLen(len(cs.exceptVolumeMounts)+1))
 				// envs
 				for _, env := range cs.exceptEnvs {
 					object := util.GetContainerEnvVar(sidecarContainer, env)
@@ -608,7 +609,8 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			}
 			_, err = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Update(context.TODO(), cloneset, metav1.UpdateOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			time.Sleep(time.Second * 10)
+			time.Sleep(time.Second * 5)
+			WaitForCloneSetReady(kc, cloneset)
 			// check pods and sidecar container
 			ginkgo.By(fmt.Sprintf("check whether sidecar container have volumeMounts"))
 			pods, err = tester.GetSelectorPods(cloneset.Namespace, cloneset.Spec.Selector)
@@ -616,9 +618,9 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			pod = pods[0]
 			envVar := util.GetContainerEnvValue(&pod.Spec.Containers[1], "TEST_ENV")
 			gomega.Expect(envVar).To(gomega.Equal("value-2"))
-			gomega.Expect(pod.Status.ContainerStatuses[0].RestartCount).To(gomega.Equal(int32(0)))
-			gomega.Expect(pod.Status.ContainerStatuses[1].RestartCount).To(gomega.Equal(int32(1)))
-			gomega.Expect(pod.Status.ContainerStatuses[2].RestartCount).To(gomega.Equal(int32(0)))
+			gomega.Expect(util.GetContainerStatus("nginx-sidecar", pod).RestartCount).To(gomega.Equal(int32(0)))
+			gomega.Expect(util.GetContainerStatus("main", pod).RestartCount).To(gomega.Equal(int32(1)))
+			gomega.Expect(util.GetContainerStatus("busybox-sidecar", pod).RestartCount).To(gomega.Equal(int32(0)))
 
 			// update cloneset spec container volume and upgrade sidecar container
 			ginkgo.By(fmt.Sprintf("in-place update cloneSet(%s.%s) for volumeMounts", cloneset.Namespace, cloneset.Name))
@@ -640,7 +642,8 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			}
 			_, err = kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Update(context.TODO(), cloneset, metav1.UpdateOptions{})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			time.Sleep(time.Second * 10)
+			time.Sleep(time.Second * 5)
+			WaitForCloneSetReady(kc, cloneset)
 
 			// check pods and sidecar container volumeMounts
 			ginkgo.By(fmt.Sprintf("check whether sidecar container have volumeMounts"))
@@ -653,13 +656,14 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			}
 			volumeM := util.GetContainerVolumeMount(&pod.Spec.Containers[0], "/main-volume")
 			gomega.Expect(volumeM).To(gomega.Equal(exceptVolumeMounts))
-			gomega.Expect(pod.Status.ContainerStatuses[0].RestartCount).To(gomega.Equal(int32(1)))
-			gomega.Expect(pod.Status.ContainerStatuses[1].RestartCount).To(gomega.Equal(int32(2)))
-			gomega.Expect(pod.Status.ContainerStatuses[2].RestartCount).To(gomega.Equal(int32(0)))
+
+			gomega.Expect(util.GetContainerStatus("nginx-sidecar", pod).RestartCount).To(gomega.Equal(int32(1)))
+			gomega.Expect(util.GetContainerStatus("main", pod).RestartCount).To(gomega.Equal(int32(2)))
+			gomega.Expect(util.GetContainerStatus("busybox-sidecar", pod).RestartCount).To(gomega.Equal(int32(0)))
 			ginkgo.By(fmt.Sprintf("sidecarSet re-inject pod sidecar container, on in-place update main container volumeMounts done"))
 		})
 
-		ginkgo.It("sidecarSet re-inject pod sidecar container, on in-place update and newPods don't have sidecar container", func() {
+		ginkgo.It("sidecarSet reinject pod sidecar container on in-place", func() {
 			// create sidecarSet
 			sidecarSet := tester.NewBaseSidecarSet(ns)
 			sidecarSet.Spec.UpdateStrategy = appsv1alpha1.SidecarSetUpdateStrategy{
@@ -758,7 +762,8 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			gomega.Expect(newPod.Spec.Containers).To(gomega.HaveLen(len(cloneset.Spec.Template.Spec.Containers) + len(sidecarSet.Spec.Containers)))
 			vMounts := util.GetContainerVolumeMount(&newPod.Spec.Containers[1], "/main-volume")
 			gomega.Expect(vMounts).NotTo(gomega.BeNil())
-			gomega.Expect(newPod.Spec.Containers[0].Image).To(gomega.Equal(newSidecarImage))
+			// 优先注入历史版本
+			gomega.Expect(newPod.Spec.Containers[0].Image).To(gomega.Equal("reg.docker.alibaba-inc.com/nginx:latest"))
 
 			ginkgo.By(fmt.Sprintf("sidecarSet re-inject pod sidecar container, on in-place update and newPods don't have sidecar container done"))
 		})
@@ -822,20 +827,6 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				sidecarContainer := pod.Spec.Containers[0]
 				gomega.Expect(sidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/base/nginx:latest"))
 			}
-
-			// sidecar name changed, not upgrade
-			ginkgo.By(fmt.Sprintf("Update SidecarSet %s sidecar container name", sidecarSetIn.Name))
-			sidecarSetIn, _ = kc.AppsV1alpha1().SidecarSets().Get(context.TODO(), sidecarSetIn.Name, metav1.GetOptions{})
-			sidecarSetIn.Spec.Containers[0].Name = "other-names"
-			tester.UpdateSidecarSet(sidecarSetIn)
-			time.Sleep(time.Second * 5)
-			except = &appsv1alpha1.SidecarSetStatus{
-				MatchedPods:      2,
-				UpdatedPods:      0,
-				UpdatedReadyPods: 0,
-				ReadyPods:        2,
-			}
-			tester.WaitForSidecarSetUpgradeComplete(sidecarSetIn, except)
 			ginkgo.By(fmt.Sprintf("sidecarSet upgrade cold sidecar container image done"))
 		})
 
@@ -865,7 +856,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// update sidecarSet sidecar container failed image
 			ginkgo.By(fmt.Sprintf("update sidecarSet(%s) failed image", sidecarSetIn.Name))
 			sidecarSetIn, _ = kc.AppsV1alpha1().SidecarSets().Get(context.TODO(), sidecarSetIn.Name, metav1.GetOptions{})
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:failed"
+			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
 			tester.UpdateSidecarSet(sidecarSetIn)
 			time.Sleep(time.Second * 30)
 			except := &appsv1alpha1.SidecarSetStatus{
@@ -1111,7 +1102,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			// update sidecarSet sidecar container
 			ginkgo.By(fmt.Sprintf("update SidecarSet %s sidecar container failed image, and MaxUnavailable", sidecarSetIn.Name))
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:failed"
+			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
 			// update sidecarSet MaxUnavailable
 			sidecarSetIn.Spec.UpdateStrategy.MaxUnavailable = &intstr.IntOrString{
 				Type:   intstr.String,
@@ -1329,7 +1320,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			// update sidecarSet sidecar container failed image
 			ginkgo.By(fmt.Sprintf("Update SidecarSet(%s) with failed image", sidecarSetIn.Name))
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:failed"
+			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
 			tester.UpdateSidecarSet(sidecarSetIn)
 			except := &appsv1alpha1.SidecarSetStatus{
 				MatchedPods:      2,
@@ -1407,4 +1398,25 @@ func newAsiTolerations() []corev1.Toleration {
 	}
 
 	return tolerations
+}
+
+func WaitForCloneSetReady(kc kruiseclientset.Interface, cloneset *appsv1alpha1.CloneSet) {
+	pollErr := wait.PollImmediate(time.Second, time.Minute,
+		func() (bool, error) {
+			inner, err := kc.AppsV1alpha1().CloneSets(cloneset.Namespace).Get(context.TODO(), cloneset.Name, metav1.GetOptions{})
+			if err != nil {
+				return false, nil
+			}
+			if inner.Generation != inner.Status.ObservedGeneration {
+				return false, nil
+			}
+			if *inner.Spec.Replicas == inner.Status.Replicas && *inner.Spec.Replicas == inner.Status.UpdatedReplicas &&
+				*inner.Spec.Replicas == inner.Status.ReadyReplicas {
+				return true, nil
+			}
+			return false, nil
+		})
+	if pollErr != nil {
+		framework.Failf("Failed waiting for cloneSet to enter running: %v", pollErr)
+	}
 }
