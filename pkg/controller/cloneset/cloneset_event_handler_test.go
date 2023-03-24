@@ -503,7 +503,7 @@ func TestEnqueueRequestForPodUpdate(t *testing.T) {
 					},
 				},
 			},
-			expectedQueueLen: 1,
+			expectedQueueLen: 0,
 		},
 		{
 			name: "orphan changed",
