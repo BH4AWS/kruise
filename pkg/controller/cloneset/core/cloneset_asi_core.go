@@ -518,9 +518,20 @@ func (c *asiControl) customizeSpecCalculate(oldRevision, newRevision *apps.Contr
 	if err != nil {
 		return nil
 	}
+	if c.Spec.UpdateStrategy.Type == appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType {
+		trimTemplateForInPlaceOnlyStrategy(oldTemp)
+	}
 	updateSpec.OldTemplate = oldTemp
 	updateSpec.NewTemplate = newTemp
 	return updateSpec
+}
+
+func trimTemplateForInPlaceOnlyStrategy(template *v1.PodTemplateSpec) {
+	template.ObjectMeta = metav1.ObjectMeta{}
+	for i := range template.Spec.Containers {
+		template.Spec.Containers[i].Resources = v1.ResourceRequirements{}
+		utilasi.RemoveContainerEnvVar(&template.Spec.Containers[i], "SIGMA_LOG_SUFFIX")
+	}
 }
 
 func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSpec, state *appspub.InPlaceUpdateState) (*v1.Pod, error) {
