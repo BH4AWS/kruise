@@ -222,18 +222,6 @@ func (c *asiControl) newVersionedPods(cs *appsv1alpha1.CloneSet, revision string
 		additionalEnvs, additionalLabels = c.getAdditionalPodConfig(&cs.Spec.Template.ObjectMeta, gClient)
 	}
 
-	if isUpdateRevision {
-		if additionalLabels == nil {
-			additionalLabels = map[string]string{}
-		}
-		if rolloutId, ok := c.Labels[apiinternal.LabelRolloutId]; ok {
-			additionalLabels[apiinternal.LabelRolloutId] = rolloutId
-		}
-		if rolloutBatchId, ok := c.Labels[apiinternal.LabelRolloutBatchId]; ok {
-			additionalLabels[apiinternal.LabelRolloutBatchId] = rolloutBatchId
-		}
-	}
-
 	var newPods []*v1.Pod
 	for i := 0; i < replicas; i++ {
 		pod, _ := controller.GetPodFromTemplate(&cs.Spec.Template, cs, metav1.NewControllerRef(cs, clonesetutils.ControllerKind))
@@ -625,14 +613,6 @@ func (c *asiControl) customizePatchPod(pod *v1.Pod, spec *inplaceupdate.UpdateSp
 
 	if publishId, ok := c.Annotations[apiinternal.AnnotationAppsPublishId]; ok {
 		pod.Annotations[apiinternal.AnnotationAppsPublishId] = publishId
-	}
-
-	if rolloutId, ok := c.Labels[apiinternal.LabelRolloutId]; ok {
-		pod.Labels[apiinternal.LabelRolloutId] = rolloutId
-	}
-
-	if rolloutBatchId, ok := c.Labels[apiinternal.LabelRolloutBatchId]; ok {
-		pod.Labels[apiinternal.LabelRolloutBatchId] = rolloutBatchId
 	}
 
 	return pod, nil

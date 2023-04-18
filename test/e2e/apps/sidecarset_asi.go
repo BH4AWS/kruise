@@ -269,7 +269,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 					object := util.GetContainerVolumeMount(sidecarContainer, volumeMount)
 					gomega.Expect(object).ShouldNot(gomega.BeNil())
 				}
-				gomega.Expect(sidecarContainer.VolumeMounts).To(gomega.HaveLen(len(cs.exceptVolumeMounts)+1))
+				gomega.Expect(sidecarContainer.VolumeMounts).To(gomega.HaveLen(len(cs.exceptVolumeMounts) + 1))
 				// envs
 				for _, env := range cs.exceptEnvs {
 					object := util.GetContainerEnvVar(sidecarContainer, env)

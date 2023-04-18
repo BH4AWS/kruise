@@ -12,6 +12,7 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
 	utilpointer "k8s.io/utils/pointer"
+	"reflect"
 	"time"
 )
 
@@ -575,12 +576,13 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 					return crr.Status.Phase
 				}, 70*time.Second, time.Second).Should(gomega.Equal(appsv1alpha1.ContainerRecreateRequestCompleted))
 				gomega.Expect(crr.Status.CompletionTime).ShouldNot(gomega.BeNil())
-				gomega.Eventually(func() string {
+
+				expectedCRRStatus := []appsv1alpha1.ContainerRecreateRequestContainerRecreateState{{Name: "nginx", Phase: appsv1alpha1.ContainerRecreateRequestSucceeded}}
+				gomega.Eventually(func() bool {
 					crr, err = resetartContainerTester.GetCRR(crr.Name)
 					gomega.Expect(err).NotTo(gomega.HaveOccurred())
-					return crr.Labels[appsv1alpha1.ContainerRecreateRequestActiveKey]
-				}, 5*time.Second, 1*time.Second).Should(gomega.Equal(""))
-				gomega.Expect(crr.Status.ContainerRecreateStates).Should(gomega.Equal([]appsv1alpha1.ContainerRecreateRequestContainerRecreateState{{Name: "nginx", Phase: appsv1alpha1.ContainerRecreateRequestSucceeded}}))
+					return crr.Labels[appsv1alpha1.ContainerRecreateRequestActiveKey] == "" && reflect.DeepEqual(expectedCRRStatus, crr.Status.ContainerRecreateStates)
+				}, 10*time.Second, 1*time.Second).Should(gomega.BeTrue())
 
 				ginkgo.By("Check Pod containers recreated and started for minStartedSeconds")
 				pod, err = resetartContainerTester.GetPod(pod.Name)

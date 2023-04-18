@@ -26,6 +26,7 @@ import (
 	"github.com/openkruise/kruise/pkg/controller/ephemeraljob"
 	"github.com/openkruise/kruise/pkg/controller/imagelistpulljob"
 	"github.com/openkruise/kruise/pkg/controller/imagepulljob"
+	"github.com/openkruise/kruise/pkg/controller/labelpatcher"
 	"github.com/openkruise/kruise/pkg/controller/nodeimage"
 	"github.com/openkruise/kruise/pkg/controller/nodepodprobe"
 	"github.com/openkruise/kruise/pkg/controller/persistentpodstate"
@@ -66,6 +67,7 @@ func init() {
 	controllerAddFuncs = append(controllerAddFuncs, sidecarterminator.Add)
 	controllerAddFuncs = append(controllerAddFuncs, podprobemarker.Add)
 	controllerAddFuncs = append(controllerAddFuncs, nodepodprobe.Add)
+	controllerAddFuncs = append(controllerAddFuncs, labelpatcher.Add)
 	controllerAddFuncs = append(controllerAddFuncs, imagelistpulljob.Add)
 }
 
