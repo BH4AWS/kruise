@@ -38,6 +38,11 @@ type AuthInfo struct {
 	Password string
 }
 
+const (
+	LabelSecretRegistryUsage        = "ali-registry-user-account"
+	ConfigMapDataRegistryServerList = "registry-server-list"
+)
+
 func (i *AuthInfo) EncodeToString() string {
 	authConfig := dockertypes.AuthConfig{
 		Username: i.Username,
@@ -96,7 +101,7 @@ func (i *imagePullAccountManager) GetAccountInfo(repo string) (*AuthInfo, error)
 	}
 
 	// 1. 从kube-system下找到aone账号（兼容alipodlifecyclehook逻辑）
-	if info, err := i.getAuthFromKubeSystem(); err != nil {
+	if info, err := i.getAuthFromKubeSystem(registry); err != nil {
 		klog.Warningf("Failed to get secret in kube-system: %v", err)
 	} else if info != nil {
 		// renew cache in 5~10 minutes
@@ -112,7 +117,7 @@ func (i *imagePullAccountManager) GetAccountInfo(repo string) (*AuthInfo, error)
 	return nil, fmt.Errorf("not found auth info for %v", repo)
 }
 
-func (i *imagePullAccountManager) getAuthFromKubeSystem() (*AuthInfo, error) {
+func (i *imagePullAccountManager) getAuthFromKubeSystem(repo string) (*AuthInfo, error) {
 	opts := metav1.ListOptions{
 		LabelSelector:   fmt.Sprintf("usage=%s,username=%s", internalRegistryUsage, internalRegistryUser),
 		ResourceVersion: "0",
@@ -123,12 +128,55 @@ func (i *imagePullAccountManager) getAuthFromKubeSystem() (*AuthInfo, error) {
 	}
 
 	for _, s := range secretList.Items {
-		if s.Type == v1.SecretTypeOpaque {
-			return &AuthInfo{
-				Username: string(s.Data["username"]),
-				Password: string(s.Data["password"]),
-			}, nil
+		if s.Type != v1.SecretTypeOpaque {
+			continue
+		}
+
+		authInfo := getRegistryAuth(&s, repo)
+		if authInfo != nil {
+			return authInfo, nil
+		}
+
+	}
+	return nil, nil
+}
+
+func getRegistryAuth(foundSecret *v1.Secret, repo string) *AuthInfo {
+	// 解析某个secret所对应的registryUrl映射
+	getRegistryServers, ok := foundSecret.Data[ConfigMapDataRegistryServerList]
+	if !ok {
+		return nil
+	}
+	registryServers := strings.Split(string(getRegistryServers), ",")
+	if len(registryServers) == 0 {
+		return nil
+	}
+
+	for _, serverUrl := range registryServers {
+		if serverUrl != repo {
+			continue
+		}
+
+		// return authInfo only if server url in the registry list
+		registryUsername := ""
+		if u, ok := foundSecret.Data["username"]; ok {
+			registryUsername = string(u)
+		} else {
+			// 兼容旧的逻辑，使用 label 中的用户名
+			registryUsername = internalRegistryUser
+		}
+		password := ""
+		if pw, ok := foundSecret.Data["password"]; ok {
+			password = string(pw)
+		} else {
+			return nil
+		}
+
+		return &AuthInfo{
+			Username: registryUsername,
+			Password: password,
 		}
 	}
-	return nil, fmt.Errorf("not found aone registry secrets")
+
+	return nil
 }

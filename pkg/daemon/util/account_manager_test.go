@@ -67,8 +67,9 @@ func TestGetFromKubeSystem(t *testing.T) {
 		},
 		Type: v1.SecretTypeOpaque,
 		Data: map[string][]byte{
-			"username": []byte(internalRegistryUser),
-			"password": []byte("whatever"),
+			"username":             []byte(internalRegistryUser),
+			"password":             []byte("whatever"),
+			"registry-server-list": []byte("reg-zhangbei.docker.alibaba-inc.com,reg.docker.alibaba-inc.com,reg-zhangbei-aone.docker.alibaba-inc.com"),
 		},
 	}
 	if _, err := fakeClient.CoreV1().Secrets("kube-system").Create(context.TODO(), &secret, metav1.CreateOptions{}); err != nil {
