@@ -121,7 +121,7 @@ func (c *asiControl) IsReadyToScale() bool {
 		c.Annotations[sigmakruiseapi.AnnotationCloneSetBatchAdoptionToAdopt] == ""
 }
 
-func (c *asiControl) ExtraStatusCalculation(status *appsv1alpha1.CloneSetStatus, pods []*v1.Pod) (map[string]string, bool, error) {
+func (c *asiControl) ExtraStatusCalculation(status *appsv1alpha1.CloneSetStatus, pods []*v1.Pod) error {
 	publishSuccessReplicas := 0
 	scheduledFailedCount := 0
 	imageFailedCount := 0
@@ -146,21 +146,28 @@ func (c *asiControl) ExtraStatusCalculation(status *appsv1alpha1.CloneSetStatus,
 	scheduledFailedCountStr := strconv.Itoa(scheduledFailedCount)
 	imageFailedCountStr := strconv.Itoa(imageFailedCount)
 	appFailedCountStr := strconv.Itoa(appFailedCount)
-
-	modified := false
 	if c.Annotations[apiinternal.AnnotationPublishSuccessReplicas] != publishSuccessReplicasStr ||
 		c.Annotations[apiinternal.AnnotationScheduledFailCount] != scheduledFailedCountStr ||
-		c.Annotations[apiinternal.AnnotationImageFailCount] != imageFailedCountStr ||
-		c.Annotations[apiinternal.AnnotationAppFailCount] != appFailedCountStr {
-		modified = true
+		c.Annotations[apiinternal.AnnotationAppFailCount] != appFailedCountStr ||
+		c.Annotations[apiinternal.AnnotationImageFailCount] != imageFailedCountStr {
+		body := fmt.Sprintf(
+			`{"metadata":{"annotations":{"%s":"%s","%s":"%s","%s":"%s","%s":"%s"}}}`,
+			apiinternal.AnnotationPublishSuccessReplicas,
+			publishSuccessReplicasStr,
+			apiinternal.AnnotationScheduledFailCount,
+			scheduledFailedCountStr,
+			apiinternal.AnnotationImageFailCount,
+			imageFailedCountStr,
+			apiinternal.AnnotationAppFailCount,
+			appFailedCountStr,
+		)
+		if err := gClient.Patch(context.TODO(), c.CloneSet, client.RawPatch(types.MergePatchType, []byte(body))); err != nil {
+			klog.Errorf("CloneSet %s/%s patch annotation err: %v", c.CloneSet.Namespace, c.CloneSet.Name, err)
+			return err
+		}
 	}
 
-	extraStatus := map[string]string{}
-	extraStatus[apiinternal.AnnotationPublishSuccessReplicas] = publishSuccessReplicasStr
-	extraStatus[apiinternal.AnnotationScheduledFailCount] = scheduledFailedCountStr
-	extraStatus[apiinternal.AnnotationImageFailCount] = imageFailedCountStr
-	extraStatus[apiinternal.AnnotationAppFailCount] = appFailedCountStr
-	return extraStatus, modified, nil
+	return nil
 }
 
 func (c *asiControl) NewVersionedPods(currentCS, updateCS *appsv1alpha1.CloneSet,
