@@ -97,7 +97,8 @@ func (r *realStatusUpdater) calculateStatus(cs *appsv1alpha1.CloneSet, newStatus
 		if clonesetutils.EqualToRevisionHash("", pod, newStatus.UpdateRevision) {
 			newStatus.UpdatedReplicas++
 		}
-		if clonesetutils.EqualToRevisionHash("", pod, newStatus.UpdateRevision) && coreControl.IsPodUpdateReady(pod, 0) {
+		// 临时修改 updatedReadyReplicas 语义为 updatedAvailableReplicas, 帮助集团规避原地升级时 kubelet 上报 Pod ready condition 错误的问题
+		if clonesetutils.EqualToRevisionHash("", pod, newStatus.UpdateRevision) && coreControl.IsPodUpdateReady(pod, cs.Spec.MinReadySeconds) {
 			newStatus.UpdatedReadyReplicas++
 		}
 		if clonesetutils.EqualToRevisionHash("", pod, newStatus.UpdateRevision) && sync.IsPodAvailable(coreControl, pod, cs.Spec.MinReadySeconds) {
