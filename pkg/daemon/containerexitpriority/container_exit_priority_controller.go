@@ -39,6 +39,7 @@ import (
 	utilfeature "github.com/openkruise/kruise/pkg/util/feature"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -456,6 +457,10 @@ func (c *Controller) listNodePods() ([]*corev1.Pod, error) {
 		pods := make([]*corev1.Pod, 0, len(podList.Items))
 		for i := range podList.Items {
 			pod := &podList.Items[i]
+			// csk 场景，优先使用 vc 中Pod的UID
+			if pod.Annotations["tenancy.x-k8s.io/uid"] != "" {
+				pod.UID = types.UID(pod.Annotations["tenancy.x-k8s.io/uid"])
+			}
 			pods = append(pods, pod)
 		}
 		return pods, nil
