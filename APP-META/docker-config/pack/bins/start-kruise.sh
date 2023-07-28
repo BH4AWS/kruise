@@ -22,7 +22,33 @@ crond -m/dev/null &
 #    exit 1
 #fi
 
-args="--rest-config-burst=500 --rest-config-qps=300 --logtostderr --enable-leader-election --leader-election-namespace=kube-system --enable-pprof"
+args=$@
+
+args="$args --rest-config-burst=500 --rest-config-qps=300 --logtostderr --enable-pprof"
+
+if [[ "$args" != *"enable-leader-election"* ]];then
+   args="$args --enable-leader-election"
+fi
+
+if [[ "$args" != *"leader-election-namespace"* ]];then
+   args="$args --leader-election-namespace=kube-system"
+fi
+
+if [[ "$args" != *"leader-election-lease-duration"* ]];then
+   args="$args --leader-election-lease-duration=20s"
+fi
+
+if [[ "$args" != *"leader-election-renew-deadline"* ]];then
+   args="$args --leader-election-renew-deadline=15s"
+fi
+
+if [[ "$args" != *"leader-election-resource-lock"* ]];then
+   args="$args --leader-election-resource-lock=leases"
+fi
+
+if [[ "$args" != *"controller-cache-sync-timeout"* ]];then
+   args="$args --controller-cache-sync-timeout=10m"
+fi
 
 if [ ! -z "$METRICS_PORT" ]; then
 	args="$args --metrics-addr=0.0.0.0:$METRICS_PORT"
@@ -84,6 +110,7 @@ if [ -z "$CLONESET_SCALING_EXCLUDE_PREPARING_DELETE" ]; then
 	CLONESET_SCALING_EXCLUDE_PREPARING_DELETE="true"
 fi
 args="$args --cloneset-scaling-exclude-preparing-delete=$CLONESET_SCALING_EXCLUDE_PREPARING_DELETE"
+echo "kruise-manager args" $args
 
 PATH=$PATH:$(pwd)/bin
 
