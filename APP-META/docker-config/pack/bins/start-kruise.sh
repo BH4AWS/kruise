@@ -117,7 +117,7 @@ PATH=$PATH:$(pwd)/bin
 pidof kruise-manager || {
   cd /home/admin/kruise
   for FILE in crds/*.yaml; do
-    kubectl replace -f $FILE || kubectl create -f $FILE
+    ./bin/kubectl replace -f $FILE || ./bin/kubectl create -f $FILE
   done
   ./bin/kruise-manager ${args} 2>&1 | tee -a log/manager.log
 }
