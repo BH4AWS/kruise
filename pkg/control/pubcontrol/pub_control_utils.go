@@ -245,5 +245,9 @@ func isNeedPubProtection(pub *policyv1alpha1.PodUnavailableBudget, operation pol
 		return true
 	}
 	operations := sets.NewString(strings.Split(operationValue, ",")...)
+	if operations.Has(string(policyv1alpha1.PubDeleteOperation)) &&
+		!operations.Has(string(policyv1alpha1.PubEvictOperation)) {
+		operations.Insert(string(policyv1alpha1.PubEvictOperation))
+	}
 	return operations.Has(string(operation))
 }

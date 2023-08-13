@@ -86,7 +86,7 @@ func (h *PodUnavailableBudgetCreateUpdateHandler) Handle(ctx context.Context, re
 func (h *PodUnavailableBudgetCreateUpdateHandler) validatingPodUnavailableBudgetFn(obj, old *policyv1alpha1.PodUnavailableBudget) field.ErrorList {
 	// validate pub.annotations
 	allErrs := field.ErrorList{}
-	if operationsValue, ok := obj.Annotations[policyv1alpha1.PubProtectOperationAnnotation]; ok {
+	if operationsValue, _ := obj.Annotations[policyv1alpha1.PubProtectOperationAnnotation]; operationsValue != "" {
 		operations := strings.Split(operationsValue, ",")
 		for _, operation := range operations {
 			if operation != string(policyv1alpha1.PubUpdateOperation) && operation != string(policyv1alpha1.PubDeleteOperation) &&
