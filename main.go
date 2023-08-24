@@ -25,11 +25,11 @@ import (
 	"time"
 	_ "time/tzdata" // for AdvancedCronJob Time Zone support
 
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-
+	_ "github.com/KimMachineGun/automemlimit"
 	"github.com/spf13/pflag"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
