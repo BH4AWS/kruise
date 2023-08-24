@@ -1,8 +1,7 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
-  creationTimestamp: null
-  name: kruise-validating-webhook-configuration
+  name: validating-webhook-configuration
 webhooks:
 - admissionReviewVersions:
   - v1
@@ -10,7 +9,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-pod
   failurePolicy: Fail
   name: vpod.kb.io
@@ -42,7 +41,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-pod
   failurePolicy: Fail
   name: vpodeviction.kb.io
@@ -73,7 +72,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-apps-deployment
   failurePolicy: Fail
   name: vbuiltindeployment.kb.io
@@ -97,7 +96,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-apps-replicaset
   failurePolicy: Fail
   name: vbuiltinreplicaset.kb.io
@@ -121,7 +120,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-apps-statefulset
   failurePolicy: Fail
   name: vbuiltinstatefulset.kb.io
@@ -145,7 +144,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-customresourcedefinition
   failurePolicy: Fail
   name: vcustomresourcedefinition.kb.io
@@ -170,7 +169,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-namespace
   failurePolicy: Fail
   name: vnamespace.kb.io
@@ -194,7 +193,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-apps-kruise-io-v1alpha1-resourcedistribution
   failurePolicy: Fail
   name: vresourcedistribution.kb.io
@@ -215,7 +214,28 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
+      path: /validate-apps-kruise-io-v1alpha1-workloadspread
+  failurePolicy: Fail
+  name: vworkloadspread.kb.io
+  rules:
+  - apiGroups:
+    - apps.kruise.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - workloadspreads
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: kruise-webhook-service
+      namespace: kube-system
       path: /validate-apps-kruise-io-v1alpha1-advancedcronjob
   failurePolicy: Fail
   name: vadvancedcronjob.kb.io
@@ -236,7 +256,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-apps-kruise-io-v1alpha1-broadcastjob
   failurePolicy: Fail
   name: vbroadcastjob.kb.io
@@ -257,7 +277,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-apps-kruise-io-v1alpha1-cloneset
   failurePolicy: Fail
   name: vcloneset.kb.io
@@ -279,7 +299,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-apps-kruise-io-v1alpha1-daemonset
   failurePolicy: Fail
   name: vdaemonset.kb.io
@@ -300,7 +320,28 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
+      path: /validate-apps-kruise-io-v1alpha1-imagelistpulljob
+  failurePolicy: Fail
+  name: vimagelistpulljob.kb.io
+  rules:
+  - apiGroups:
+    - apps.kruise.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - imagelistpulljobs
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: kruise-webhook-service
+      namespace: kube-system
       path: /validate-apps-kruise-io-v1alpha1-imagepulljob
   failurePolicy: Fail
   name: vimagepulljob.kb.io
@@ -321,7 +362,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-apps-kruise-io-v1alpha1-nodeimage
   failurePolicy: Fail
   name: vnodeimage.kb.io
@@ -342,7 +383,49 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
+      path: /validate-apps-kruise-io-persistentpodstate
+  failurePolicy: Fail
+  name: vpersistentpodstate.kb.io
+  rules:
+  - apiGroups:
+    - apps.kruise.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - persistentpodstates
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: kruise-webhook-service
+      namespace: kube-system
+      path: /validate-apps-kruise-io-podprobemarker
+  failurePolicy: Fail
+  name: vpodprobemarker.kb.io
+  rules:
+  - apiGroups:
+    - apps.kruise.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - podprobemarkers
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: kruise-webhook-service
+      namespace: kube-system
       path: /validate-policy-kruise-io-podunavailablebudget
   failurePolicy: Fail
   name: vpodunavailablebudget.kb.io
@@ -363,7 +446,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-apps-kruise-io-v1alpha1-sidecarset
   failurePolicy: Fail
   name: vsidecarset.kb.io
@@ -384,7 +467,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-apps-kruise-io-statefulset
   failurePolicy: Fail
   name: vstatefulset.kb.io
@@ -407,7 +490,7 @@ webhooks:
   clientConfig:
     service:
       name: kruise-webhook-service
-      namespace: kruise-system
+      namespace: kube-system
       path: /validate-apps-kruise-io-v1alpha1-uniteddeployment
   failurePolicy: Fail
   name: vuniteddeployment.kb.io
@@ -423,66 +506,4 @@ webhooks:
     resources:
     - uniteddeployments
   sideEffects: None
-- admissionReviewVersions:
-  - v1
-  - v1beta1
-  clientConfig:
-    service:
-      name: kruise-webhook-service
-      namespace: kruise-system
-      path: /validate-apps-kruise-io-v1alpha1-workloadspread
-  failurePolicy: Fail
-  name: vworkloadspread.kb.io
-  rules:
-  - apiGroups:
-    - apps.kruise.io
-    apiVersions:
-    - v1alpha1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - workloadspreads
-  sideEffects: None
-- admissionReviewVersions:
-  - v1
-  - v1beta1
-  clientConfig:
-    service:
-      name: kruise-webhook-service
-      namespace: kruise-system
-      path: /validate-apps-kruise-io-persistentpodstate
-  failurePolicy: Fail
-  name: vpersistentpodstate.kb.io
-  rules:
-  - apiGroups:
-    - apps.kruise.io
-    apiVersions:
-    - v1alpha1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - persistentpodstates
-  sideEffects: None
-- admissionReviewVersions:
-  - v1
-  - v1beta1
-  clientConfig:
-    service:
-      name: webhook-service
-      namespace: system
-      path: /validate-apps-kruise-io-podprobemarker
-  failurePolicy: Fail
-  name: vpodprobemarker.kb.io
-  rules:
-  - apiGroups:
-    - apps.kruise.io
-    apiVersions:
-    - v1alpha1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - podprobemarkers
-  sideEffects: None
+

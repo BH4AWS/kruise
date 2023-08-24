@@ -141,9 +141,9 @@ var defaultFeatureGates = map[featuregate.Feature]featuregate.FeatureSpec{
 	PreDownloadImageForDaemonSetUpdate:        {Default: false, PreRelease: featuregate.Alpha},
 	CloneSetEventHandlerOptimization:          {Default: true, PreRelease: featuregate.Alpha},
 	PreparingUpdateAsUpdate:                   {Default: false, PreRelease: featuregate.Alpha},
-	ImagePullJobGate:                          {Default: false, PreRelease: featuregate.Alpha},
-	ResourceDistributionGate:                  {Default: false, PreRelease: featuregate.Alpha},
-	DeletionProtectionForCRDCascadingGate:     {Default: false, PreRelease: featuregate.Alpha},
+	ImagePullJobGate:                          {Default: true, PreRelease: featuregate.Alpha},
+	ResourceDistributionGate:                  {Default: true, PreRelease: featuregate.Alpha},
+	DeletionProtectionForCRDCascadingGate:     {Default: true, PreRelease: featuregate.Alpha},
 }
 
 func init() {

@@ -25,6 +25,7 @@ import (
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	"github.com/openkruise/kruise/pkg/controller/cloneset/apiinternal"
 	clonesetutils "github.com/openkruise/kruise/pkg/controller/cloneset/utils"
+	"github.com/openkruise/kruise/pkg/util"
 	utildiscovery "github.com/openkruise/kruise/pkg/util/discovery"
 	"github.com/openkruise/kruise/pkg/util/expectations"
 	"github.com/openkruise/kruise/pkg/util/fieldindex"
@@ -82,7 +83,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
 	c, err := controller.New("label-patcher-controller", mgr, controller.Options{
 		Reconciler: r, MaxConcurrentReconciles: concurrentReconciles,
-		RateLimiter: ratelimiter.DefaultControllerRateLimiter()})
+		RateLimiter: ratelimiter.DefaultControllerRateLimiter(), CacheSyncTimeout: util.GetControllerCacheSyncTimeout()})
 	if err != nil {
 		return err
 	}

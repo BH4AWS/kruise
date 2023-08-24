@@ -171,6 +171,8 @@ run-kruise-e2e-test:
 	@echo -e "\n\033[36mRunning kruise e2e tests...\033[0m"
 	tools/hack/run-kruise-e2e-test.sh
 
+sync_config_asi:
+	scripts/sync_config.sh
 
 # kruise-e2e-test runs kruise e2e tests.
 .PHONY: kruise-e2e-test
