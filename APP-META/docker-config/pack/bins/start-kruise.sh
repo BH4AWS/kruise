@@ -58,6 +58,10 @@ if [ ! -z "$HEALTH_PORT" ]; then
 	args="$args --health-probe-addr=0.0.0.0:$HEALTH_PORT"
 fi
 
+if [ ! -z "$STARTUP_PORT" ]; then
+	args="$args --startup-probe-addr=0.0.0.0:$STARTUP_PORT"
+fi
+
 if [ ! -z "$PPROF_PORT" ]; then
 	args="$args --pprof-addr=0.0.0.0:$PPROF_PORT"
 fi

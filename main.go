@@ -52,6 +52,7 @@ import (
 	utilfeature "github.com/openkruise/kruise/pkg/util/feature"
 	"github.com/openkruise/kruise/pkg/util/fieldindex"
 	_ "github.com/openkruise/kruise/pkg/util/metrics/leadership"
+	"github.com/openkruise/kruise/pkg/utilasi"
 	"github.com/openkruise/kruise/pkg/webhook"
 	// +kubebuilder:scaffold:imports
 )
@@ -85,7 +86,7 @@ func init() {
 
 func main() {
 	var metricsAddr, pprofAddr string
-	var healthProbeAddr string
+	var healthProbeAddr, startupProbeAddr string
 	var enableLeaderElection, enablePprof, allowPrivileged bool
 	var leaderElectionNamespace string
 	var namespace string
@@ -99,6 +100,7 @@ func main() {
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&healthProbeAddr, "health-probe-addr", ":8000", "The address the healthz/readyz endpoint binds to.")
+	flag.StringVar(&startupProbeAddr, "startup-probe-addr", ":8089", "The address the startup endpoint binds to.")
 	flag.BoolVar(&allowPrivileged, "allow-privileged", true, "If true, allow privileged containers. It will only work if api-server is also"+
 		"started with --allow-privileged=true.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", true, "Whether you need to enable leader election.")
@@ -233,7 +235,9 @@ func main() {
 			os.Exit(1)
 		}
 	}()
-
+	// add startup runnable, and wait for cache sync complete, then listen startupProbe port
+	startupRunnable := utilasi.StartupProbeRunnable{StartupProbeAddr: startupProbeAddr}
+	mgr.Add(startupRunnable)
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctx); err != nil {
 		setupLog.Error(err, "problem running manager")

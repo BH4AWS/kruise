@@ -20,14 +20,14 @@ import (
 	"context"
 	"sync"
 
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
+	policyv1alpha1 "github.com/openkruise/kruise/apis/policy/v1alpha1"
 	utildiscovery "github.com/openkruise/kruise/pkg/util/discovery"
 	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -53,7 +53,26 @@ var ownerIndexFunc = func(obj client.Object) []string {
 func RegisterFieldIndexes(c cache.Cache) error {
 	var err error
 	registerOnce.Do(func() {
-
+		// cache Secret
+		if _, err = c.GetInformer(context.TODO(), &v1.Secret{}); err != nil {
+			return
+		}
+		// cache CloneSet
+		if _, err = c.GetInformer(context.TODO(), &appsv1alpha1.CloneSet{}); err != nil {
+			return
+		}
+		// cache configmaps
+		if _, err = c.GetInformer(context.TODO(), &v1.ConfigMap{}); err != nil {
+			return
+		}
+		// cache pub
+		if _, err = c.GetInformer(context.TODO(), &policyv1alpha1.PodUnavailableBudget{}); err != nil {
+			return
+		}
+		// cache sidecarSet
+		if _, err = c.GetInformer(context.TODO(), &appsv1alpha1.SidecarSet{}); err != nil {
+			return
+		}
 		// pod ownerReference
 		if err = c.IndexField(context.TODO(), &v1.Pod{}, IndexNameForOwnerRefUID, ownerIndexFunc); err != nil {
 			return

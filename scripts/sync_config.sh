@@ -49,6 +49,7 @@ for file in *; do
     fi
 
     if [[ "$kind" == "ValidatingWebhookConfiguration" ]]; then
+      sed -i '' 's/validating-webhook-configuration/kruise-validating-webhook-configuration/g' $file
       sed -i '' 's/name: webhook-service/name: kruise-webhook-service/g' $file
       sed -i '' 's/namespace: system/namespace: kube-system/g' $file
       mv $file "$current_dir/APP-META/docker-config/pack/crds/config/validating.yaml"
