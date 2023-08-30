@@ -41,7 +41,6 @@ require (
 	k8s.io/component-helpers v0.24.16
 	k8s.io/cri-api v0.24.16
 	k8s.io/gengo v0.0.0-20211129171323-c02415ce4185
-	k8s.io/klog v1.0.0
 	k8s.io/klog/v2 v2.90.1
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f
 	k8s.io/kubernetes v1.24.0

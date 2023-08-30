@@ -24,6 +24,10 @@ webhooks:
       values:
       - kruise-manager
       - asi-extensions-webhook
+    - key: skip-webhook.alibabacloud.com/kruise
+      operator: NotIn
+      values:
+      - "true"
   rules:
   - apiGroups:
     - ""

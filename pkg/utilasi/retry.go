@@ -20,7 +20,7 @@ import (
 	"errors"
 	"time"
 
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 func Retry(operation func() error, name string, attempts int, retryWaitSeconds int) (err error) {

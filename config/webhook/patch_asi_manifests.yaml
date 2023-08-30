@@ -6,11 +6,15 @@ webhooks:
 - name: mpod.kb.io
   objectSelector:
     matchExpressions:
-      - key: component
-        operator: NotIn
-        values:
-        - kruise-manager
-        - asi-extensions-webhook
+    - key: component
+      operator: NotIn
+      values:
+      - kruise-manager
+      - asi-extensions-webhook
+    - key:  skip-webhook.alibabacloud.com/kruise
+      operator: NotIn
+      values:
+      - 'true'
   rules:
   - apiGroups:
     - ""
@@ -30,16 +34,24 @@ webhooks:
 - name: vpod.kb.io
   objectSelector:
     matchExpressions:
-      - key: component
-        operator: NotIn
-        values:
-        - kruise-manager
-        - asi-extensions-webhook
+    - key: component
+      operator: NotIn
+      values:
+      - kruise-manager
+      - asi-extensions-webhook
+    - key: skip-webhook.alibabacloud.com/kruise
+      operator: NotIn
+      values:
+      - 'true'
 - name: vpodeviction.kb.io
   objectSelector:
     matchExpressions:
-      - key: component
-        operator: NotIn
-        values:
-        - kruise-manager
-        - asi-extensions-webhook
+    - key: component
+      operator: NotIn
+      values:
+      - kruise-manager
+      - asi-extensions-webhook
+    - key: skip-webhook.alibabacloud.com/kruise
+      operator: NotIn
+      values:
+      - 'true'

@@ -22,7 +22,7 @@ import (
 
 	"github.com/openkruise/kruise/pkg/utilasi/config"
 	"github.com/openkruise/kruise/pkg/utilasi/naming"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 var service naming.Service

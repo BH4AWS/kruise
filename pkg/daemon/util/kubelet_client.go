@@ -27,7 +27,7 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 const (
@@ -45,7 +45,8 @@ type kubeletClient struct {
 var (
 	kc *kubeletClient
 
-	kubeletPort = flag.Int("kubelet-port", 10255, "The port of kubelet api listen(http). default is 10255")
+	kubeletPort       = flag.Int("insecure-kubelet-port", 10255, "The port of kubelet api listen(http). default is 10255. default is insecure port.")
+	secureKubeletPort = flag.Int("secure-kubelet-port", 0, "The port of kubelet api listen(https).")
 )
 
 func InitKubeletClient() error {
@@ -55,7 +56,11 @@ func InitKubeletClient() error {
 		return err
 	}
 	kc.token = string(token)
-	kc.apiUrlPrefix = fmt.Sprintf("http://localhost:%d", *kubeletPort)
+	if *secureKubeletPort != 0 {
+		kc.apiUrlPrefix = fmt.Sprintf("https://localhost:%d", *secureKubeletPort)
+	} else {
+		kc.apiUrlPrefix = fmt.Sprintf("http://localhost:%d", *kubeletPort)
+	}
 	tr := &http.Transport{
 		MaxIdleConns:       10,
 		IdleConnTimeout:    30 * time.Second,
