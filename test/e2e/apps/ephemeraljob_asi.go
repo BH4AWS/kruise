@@ -47,7 +47,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 
 			// create deployment
 			deployment := tester.NewBaseDeployment(ns)
-			deployment.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx"
+			deployment.Spec.Template.Spec.Containers[0].Image = NginxImage
 			deployment.Spec.Template.Spec.Containers[0].Name = "nginx"
 			var five int32 = 5
 			deployment.Spec.Replicas = &five
@@ -63,7 +63,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 					TargetContainerName: "nginx",
 					EphemeralContainerCommon: v1.EphemeralContainerCommon{
 						Name:                     "debugger",
-						Image:                    "reg.docker.alibaba-inc.com/base/busybox",
+						Image:                    BusyboxImage,
 						Command:                  []string{"sleep", "3"},
 						ImagePullPolicy:          v1.PullIfNotPresent,
 						TerminationMessagePolicy: v1.TerminationMessageReadFile,
@@ -84,7 +84,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 
 			// create deployment
 			deployment := tester.NewBaseDeployment(ns)
-			deployment.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx"
+			deployment.Spec.Template.Spec.Containers[0].Image = NginxImage
 			deployment.Spec.Template.Spec.Containers[0].Name = "nginx"
 			var replicas int32 = 6
 			deployment.Spec.Replicas = &replicas
@@ -100,7 +100,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 					TargetContainerName: "nginx",
 					EphemeralContainerCommon: v1.EphemeralContainerCommon{
 						Name:                     "debugger",
-						Image:                    "reg.docker.alibaba-inc.com/base/busybox",
+						Image:                    BusyboxImage,
 						ImagePullPolicy:          v1.PullIfNotPresent,
 						Command:                  []string{"sdkfjk"},
 						TerminationMessagePolicy: v1.TerminationMessageReadFile,
@@ -121,7 +121,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 
 			// create deployment
 			deployment := tester.NewBaseDeployment(ns)
-			deployment.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx"
+			deployment.Spec.Template.Spec.Containers[0].Image = NginxImage
 			deployment.Spec.Template.Spec.Containers[0].Name = "nginx"
 			var replicas int32 = 1
 			deployment.Spec.Replicas = &replicas
@@ -144,7 +144,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 								TargetContainerName: "nginx",
 								EphemeralContainerCommon: v1.EphemeralContainerCommon{
 									Name:                     "debugger",
-									Image:                    "reg.docker.alibaba-inc.com/base/busybox",
+									Image:                    BusyboxImage,
 									Command:                  []string{"sleep", "9999"},
 									ImagePullPolicy:          v1.PullIfNotPresent,
 									TerminationMessagePolicy: v1.TerminationMessageReadFile,
@@ -166,7 +166,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 		ginkgo.It("create ephemeral running error exit job", func() {
 			ginkgo.By("Create Deployment and wait Pods ready")
 			deployment := tester.NewBaseDeployment(ns)
-			deployment.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx"
+			deployment.Spec.Template.Spec.Containers[0].Image = NginxImage
 			deployment.Spec.Template.Spec.Containers[0].Name = "nginx"
 			var replicas int32 = 6
 			deployment.Spec.Replicas = &replicas
@@ -182,7 +182,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 					TargetContainerName: "nginx",
 					EphemeralContainerCommon: v1.EphemeralContainerCommon{
 						Name:                     "debugger",
-						Image:                    "reg.docker.alibaba-inc.com/base/busybox",
+						Image:                    BusyboxImage,
 						ImagePullPolicy:          v1.PullIfNotPresent,
 						Command:                  []string{"ls", "sdfewasf"},
 						TerminationMessagePolicy: v1.TerminationMessageReadFile,
@@ -202,7 +202,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 			ginkgo.By("Create Deployment and wait Pods ready")
 
 			deployment := tester.NewBaseDeployment(ns)
-			deployment.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx"
+			deployment.Spec.Template.Spec.Containers[0].Image = NginxImage
 			deployment.Spec.Template.Spec.Containers[0].Name = "nginx"
 			var replicas int32 = 1
 			deployment.Spec.Replicas = &replicas
@@ -219,7 +219,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 					TargetContainerName: "nginx",
 					EphemeralContainerCommon: v1.EphemeralContainerCommon{
 						Name:                     "debugger",
-						Image:                    "reg.docker.alibaba-inc.com/base/busybox",
+						Image:                    BusyboxImage,
 						ImagePullPolicy:          v1.PullIfNotPresent,
 						Command:                  []string{"sleep", "3000"},
 						TerminationMessagePolicy: v1.TerminationMessageReadFile,
@@ -234,7 +234,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 					TargetContainerName: "nginx",
 					EphemeralContainerCommon: v1.EphemeralContainerCommon{
 						Name:                     "debugger2",
-						Image:                    "reg.docker.alibaba-inc.com/base/busybox",
+						Image:                    BusyboxImage,
 						ImagePullPolicy:          v1.PullIfNotPresent,
 						Command:                  []string{"sleep", "30"},
 						TerminationMessagePolicy: v1.TerminationMessageReadFile,
@@ -257,7 +257,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 		ginkgo.It("create ephemeral running two job, but to one target", func() {
 			ginkgo.By("Create Deployment and wait Pods ready")
 			deployment := tester.NewBaseDeployment(ns)
-			deployment.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx"
+			deployment.Spec.Template.Spec.Containers[0].Image = NginxImage
 			deployment.Spec.Template.Spec.Containers[0].Name = "nginx"
 			var replicas int32 = 1
 			deployment.Spec.Replicas = &replicas
@@ -274,7 +274,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 					TargetContainerName: "nginx",
 					EphemeralContainerCommon: v1.EphemeralContainerCommon{
 						Name:                     "debugger",
-						Image:                    "reg.docker.alibaba-inc.com/base/busybox",
+						Image:                    BusyboxImage,
 						ImagePullPolicy:          v1.PullIfNotPresent,
 						Command:                  []string{"sleep", "3000"},
 						TerminationMessagePolicy: v1.TerminationMessageReadFile,
@@ -289,7 +289,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 					TargetContainerName: "nginx",
 					EphemeralContainerCommon: v1.EphemeralContainerCommon{
 						Name:                     "debugger",
-						Image:                    "reg.docker.alibaba-inc.com/base/busybox",
+						Image:                    BusyboxImage,
 						ImagePullPolicy:          v1.PullIfNotPresent,
 						Command:                  []string{"sleep", "3000"},
 						TerminationMessagePolicy: v1.TerminationMessageReadFile,
@@ -335,7 +335,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 			ginkgo.By("Create Deployment and wait Pods ready")
 
 			deployment := tester.NewBaseDeployment(ns)
-			deployment.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx"
+			deployment.Spec.Template.Spec.Containers[0].Image = NginxImage
 			deployment.Spec.Template.Spec.Containers[0].Name = "nginx"
 			var replicas int32 = 1
 			deployment.Spec.Replicas = &replicas
@@ -358,7 +358,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 								TargetContainerName: "nginx",
 								EphemeralContainerCommon: v1.EphemeralContainerCommon{
 									Name:                     "debugger",
-									Image:                    "reg.docker.alibaba-inc.com/base/busybox",
+									Image:                    BusyboxImage,
 									Command:                  []string{"sleep", "3"},
 									ImagePullPolicy:          v1.PullIfNotPresent,
 									TerminationMessagePolicy: v1.TerminationMessageReadFile,
@@ -391,7 +391,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 			ginkgo.By("Create CloneSet " + randStr)
 			cloneSetTester := framework.NewCloneSetTester(c, kc, ns)
 			cs := cloneSetTester.NewCloneSet("clone-"+randStr, 1, appsv1alpha1.CloneSetUpdateStrategy{Type: appsv1alpha1.InPlaceIfPossibleCloneSetUpdateStrategyType})
-			cs.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx"
+			cs.Spec.Template.Spec.Containers[0].Image = NginxImage
 			cs.Spec.Template.ObjectMeta.Labels["run"] = "nginx"
 			cs.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			cs, err := cloneSetTester.CreateCloneSet(cs)
@@ -422,7 +422,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 					TargetContainerName: "nginx",
 					EphemeralContainerCommon: v1.EphemeralContainerCommon{
 						Name:                     "debugger",
-						Image:                    "reg.docker.alibaba-inc.com/base/busybox",
+						Image:                    BusyboxImage,
 						Command:                  []string{"sleep", "99999"},
 						ImagePullPolicy:          v1.PullIfNotPresent,
 						TerminationMessagePolicy: v1.TerminationMessageReadFile,
@@ -452,7 +452,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 				if cs.Annotations == nil {
 					cs.Annotations = map[string]string{}
 				}
-				cs.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx"
+				cs.Spec.Template.Spec.Containers[0].Image = NginxImage
 			})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
@@ -486,7 +486,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 			ginkgo.By("Create CloneSet " + randStr)
 			cloneSetTester := framework.NewCloneSetTester(c, kc, ns)
 			cs := cloneSetTester.NewCloneSet("clone-"+randStr, 1, appsv1alpha1.CloneSetUpdateStrategy{Type: appsv1alpha1.InPlaceIfPossibleCloneSetUpdateStrategyType})
-			cs.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx"
+			cs.Spec.Template.Spec.Containers[0].Image = NginxImage
 			cs.Spec.Template.ObjectMeta.Labels["run"] = "nginx"
 			cs.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			cs, err := cloneSetTester.CreateCloneSet(cs)
@@ -517,7 +517,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 					TargetContainerName: "nginx",
 					EphemeralContainerCommon: v1.EphemeralContainerCommon{
 						Name:                     "debugger",
-						Image:                    "reg.docker.alibaba-inc.com/base/busybox",
+						Image:                    BusyboxImage,
 						Command:                  []string{"sleep", "99999"},
 						ImagePullPolicy:          v1.PullIfNotPresent,
 						TerminationMessagePolicy: v1.TerminationMessageReadFile,
@@ -609,7 +609,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 			ginkgo.By("Create CloneSet " + randStr)
 			cloneSetTester := framework.NewCloneSetTester(c, kc, ns)
 			cs := cloneSetTester.NewCloneSet("clone-"+randStr, 1, appsv1alpha1.CloneSetUpdateStrategy{Type: appsv1alpha1.InPlaceIfPossibleCloneSetUpdateStrategyType})
-			cs.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx"
+			cs.Spec.Template.Spec.Containers[0].Image = NginxImage
 			cs.Spec.Template.ObjectMeta.Labels["run"] = "nginx"
 			cs.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			cs, err := cloneSetTester.CreateCloneSet(cs)
@@ -647,7 +647,7 @@ var _ = SIGDescribe("ephemeraljob-asi", func() {
 					TargetContainerName: "nginx",
 					EphemeralContainerCommon: v1.EphemeralContainerCommon{
 						Name:                     "debugger",
-						Image:                    "reg.docker.alibaba-inc.com/base/busybox",
+						Image:                    BusyboxImage,
 						Command:                  []string{"sleep", "99999"},
 						ImagePullPolicy:          v1.PullIfNotPresent,
 						TerminationMessagePolicy: v1.TerminationMessageReadFile,
