@@ -76,7 +76,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			// create deployment
 			deployment := tester.NewBaseDeployment(ns)
-			deployment.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/busybox:latest"
+			deployment.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			deployment.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			ginkgo.By(fmt.Sprintf("Creating Deployment(%s.%s)", deployment.Namespace, deployment.Name))
 			tester.CreateDeployment(deployment)
@@ -94,15 +94,15 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// create sidecarSet
 			sidecarSet := tester.NewBaseSidecarSet(ns)
 			sidecarSet.Labels = map[string]string{sidecarcontrol.LabelSidecarSetMode: sidecarcontrol.SidecarSetASI}
-			sidecarSet.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSet.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
-			sidecarSet.Spec.Containers[1].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			sidecarSet.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSet.Spec.Containers[0].Image = NginxImage
+			sidecarSet.Spec.Containers[1].Image = BusyboxImage
 			ginkgo.By(fmt.Sprintf("Creating SidecarSet %s", sidecarSet.Name))
 			tester.CreateSidecarSet(sidecarSet)
 
 			// create deployment
 			deployment := tester.NewBaseDeployment(ns)
-			deployment.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/busybox:latest"
+			deployment.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			deployment.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			ginkgo.By(fmt.Sprintf("Creating Deployment(%s.%s)", deployment.Namespace, deployment.Name))
 			tester.CreateDeployment(deployment)
@@ -124,12 +124,12 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// create sidecarSet
 			sidecarSet := tester.NewBaseSidecarSet(ns)
 			sidecarSet.Labels = map[string]string{sidecarcontrol.LabelSidecarSetMode: sidecarcontrol.SidecarSetASI}
-			sidecarSet.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSet.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
-			sidecarSet.Spec.Containers[1].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			sidecarSet.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSet.Spec.Containers[0].Image = NginxImage
+			sidecarSet.Spec.Containers[1].Image = BusyboxImage
 			// create deployment
 			deployment := tester.NewBaseDeployment(ns)
-			deployment.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/busybox:latest"
+			deployment.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			deployment.Spec.Template.Spec.Tolerations = newAsiTolerations()
 
 			cases := []struct {
@@ -283,12 +283,12 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// create sidecarSet
 			sidecarSet := tester.NewBaseSidecarSet(ns)
 			sidecarSet.Labels = map[string]string{sidecarcontrol.LabelSidecarSetMode: sidecarcontrol.SidecarSetASI}
-			sidecarSet.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSet.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
-			sidecarSet.Spec.Containers[1].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			sidecarSet.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSet.Spec.Containers[0].Image = NginxImage
+			sidecarSet.Spec.Containers[1].Image = BusyboxImage
 			// create deployment
 			deployment := tester.NewBaseDeployment(ns)
-			deployment.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/busybox:latest"
+			deployment.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			deployment.Spec.Template.Spec.Tolerations = newAsiTolerations()
 
 			cases := []struct {
@@ -390,8 +390,8 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// create sidecarSet
 			sidecarSetIn := tester.NewBaseSidecarSet(ns)
 			sidecarSetIn.Labels = map[string]string{sidecarcontrol.LabelSidecarSetMode: sidecarcontrol.SidecarSetASI}
-			sidecarSetIn.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
+			sidecarSetIn.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			sidecarSetIn.Spec.Containers = sidecarSetIn.Spec.Containers[:1]
 			sidecarSetIn.Spec.Containers[0].Env = []corev1.EnvVar{
 				{
@@ -422,7 +422,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
-			deploymentIn.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/busybox:latest"
+			deploymentIn.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			deploymentIn.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			deploymentIn.Spec.Template.Spec.Containers[0].Env = []corev1.EnvVar{
 				{
@@ -467,7 +467,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			cloneset.Spec.UpdateStrategy = appsv1alpha1.CloneSetUpdateStrategy{
 				Type: appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType,
 			}
-			cloneset.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/busybox:latest"
+			cloneset.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			cloneset.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			ginkgo.By(fmt.Sprintf("Creating CloneSet(%s.%s)", cloneset.Namespace, cloneset.Name))
 			cloneset = tester.CreateCloneSet(cloneset)
@@ -476,9 +476,9 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// create sidecarSet
 			sidecarSet := tester.NewBaseSidecarSet(ns)
 			sidecarSet.Labels = map[string]string{sidecarcontrol.LabelSidecarSetMode: sidecarcontrol.SidecarSetASI}
-			sidecarSet.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSet.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
-			sidecarSet.Spec.Containers[1].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			sidecarSet.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSet.Spec.Containers[0].Image = NginxImage
+			sidecarSet.Spec.Containers[1].Image = BusyboxImage
 			ginkgo.By(fmt.Sprintf("Creating SidecarSet %s", sidecarSet.Name))
 			tester.CreateSidecarSet(sidecarSet)
 
@@ -563,9 +563,9 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			sidecarSet.Annotations = map[string]string{
 				sidecarcontrol.SidecarInjectOnInplaceUpdate: "true",
 			}
-			sidecarSet.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSet.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
-			sidecarSet.Spec.Containers[1].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			sidecarSet.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSet.Spec.Containers[0].Image = NginxImage
+			sidecarSet.Spec.Containers[1].Image = BusyboxImage
 			ginkgo.By(fmt.Sprintf("Creating SidecarSet %s", sidecarSet.Name))
 			tester.CreateSidecarSet(sidecarSet)
 
@@ -582,7 +582,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 					Value: "value-1",
 				},
 			}
-			cloneset.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/busybox:latest"
+			cloneset.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			cloneset.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			ginkgo.By(fmt.Sprintf("Creating CloneSet(%s.%s)", cloneset.Namespace, cloneset.Name))
 			cloneset = tester.CreateCloneSet(cloneset)
@@ -673,9 +673,9 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			sidecarSet.Annotations = map[string]string{
 				sidecarcontrol.SidecarInjectOnInplaceUpdate: "true",
 			}
-			sidecarSet.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSet.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
-			sidecarSet.Spec.Containers[1].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			sidecarSet.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSet.Spec.Containers[0].Image = NginxImage
+			sidecarSet.Spec.Containers[1].Image = BusyboxImage
 			ginkgo.By(fmt.Sprintf("Creating SidecarSet %s", sidecarSet.Name))
 			tester.CreateSidecarSet(sidecarSet)
 
@@ -686,7 +686,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			cloneset.Spec.UpdateStrategy = appsv1alpha1.CloneSetUpdateStrategy{
 				Type: appsv1alpha1.InPlaceOnlyCloneSetUpdateStrategyType,
 			}
-			cloneset.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/busybox:latest"
+			cloneset.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			cloneset.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			ginkgo.By(fmt.Sprintf("Creating CloneSet(%s.%s)", cloneset.Namespace, cloneset.Name))
 			cloneset = tester.CreateCloneSet(cloneset)
@@ -703,7 +703,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			}
 
 			// update sidecarSet image
-			newSidecarImage := "reg.docker.alibaba-inc.com/base/nginx:latest"
+			newSidecarImage := NginxImage
 			ginkgo.By(fmt.Sprintf("Update sidecarSet(%s) sidecar container image(%s)", sidecarSet.Name, newSidecarImage))
 			sidecarSet, _ = kc.AppsV1alpha1().SidecarSets().Get(context.TODO(), sidecarSet.Name, metav1.GetOptions{})
 			sidecarSet.Spec.Containers[0].Image = newSidecarImage
@@ -731,7 +731,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			gomega.Expect(newPod.Spec.Containers).To(gomega.HaveLen(len(cloneset.Spec.Template.Spec.Containers) + len(sidecarSet.Spec.Containers)))
 			envVar := util.GetContainerEnvVar(&newPod.Spec.Containers[1], "TEST_ENV")
 			gomega.Expect(envVar).NotTo(gomega.BeNil())
-			gomega.Expect(newPod.Spec.Containers[0].Image).To(gomega.Equal("reg.docker.alibaba-inc.com/nginx:latest"))
+			gomega.Expect(newPod.Spec.Containers[0].Image).To(gomega.Equal(NginxImage))
 
 			// update pods and newPods don't have sidecar containers
 			ginkgo.By(fmt.Sprintf("Update pod(%s.%s) main container volumeMounts", pod.Namespace, pod.Name))
@@ -763,7 +763,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			vMounts := util.GetContainerVolumeMount(&newPod.Spec.Containers[1], "/main-volume")
 			gomega.Expect(vMounts).NotTo(gomega.BeNil())
 			// 优先注入历史版本
-			gomega.Expect(newPod.Spec.Containers[0].Image).To(gomega.Equal("reg.docker.alibaba-inc.com/nginx:latest"))
+			gomega.Expect(newPod.Spec.Containers[0].Image).To(gomega.Equal(NginxImage))
 
 			ginkgo.By(fmt.Sprintf("sidecarSet re-inject pod sidecar container, on in-place update and newPods don't have sidecar container done"))
 		})
@@ -787,8 +787,8 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				sidecarcontrol.SidecarInjectOnInplaceUpdate: "true",
 			}
 			sidecarSetIn.Spec.Containers = sidecarSetIn.Spec.Containers[:1]
-			sidecarSetIn.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
+			sidecarSetIn.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			sidecarSetIn.Spec.UpdateStrategy = appsv1alpha1.SidecarSetUpdateStrategy{
 				Type: appsv1alpha1.RollingUpdateSidecarSetStrategyType,
 				MaxUnavailable: &intstr.IntOrString{
@@ -801,7 +801,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
-			deploymentIn.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			deploymentIn.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			deploymentIn.Spec.Replicas = utilpointer.Int32Ptr(2)
 			deploymentIn.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			ginkgo.By(fmt.Sprintf("Creating Deployment(%s.%s)", deploymentIn.Namespace, deploymentIn.Name))
@@ -810,7 +810,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// update sidecarSet sidecar container
 			ginkgo.By(fmt.Sprintf("Update SidecarSet %s sidecar image", sidecarSetIn.Name))
 			sidecarSetIn, _ = kc.AppsV1alpha1().SidecarSets().Get(context.TODO(), sidecarSetIn.Name, metav1.GetOptions{})
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx:latest"
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			tester.UpdateSidecarSet(sidecarSetIn)
 			time.Sleep(time.Second * 5)
 			except := &appsv1alpha1.SidecarSetStatus{
@@ -825,7 +825,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			for _, pod := range pods {
 				sidecarContainer := pod.Spec.Containers[0]
-				gomega.Expect(sidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/base/nginx:latest"))
+				gomega.Expect(sidecarContainer.Image).To(gomega.Equal(NginxImage))
 			}
 			ginkgo.By(fmt.Sprintf("sidecarSet upgrade cold sidecar container image done"))
 		})
@@ -837,8 +837,8 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				sidecarcontrol.SidecarInjectOnInplaceUpdate: "true",
 			}
 			sidecarSetIn.Spec.Containers = sidecarSetIn.Spec.Containers[:1]
-			sidecarSetIn.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
+			sidecarSetIn.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			sidecarSetIn.Spec.UpdateStrategy = appsv1alpha1.SidecarSetUpdateStrategy{
 				Type: appsv1alpha1.RollingUpdateSidecarSetStrategyType,
 			}
@@ -848,7 +848,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
 			deploymentIn.Spec.Replicas = utilpointer.Int32Ptr(2)
-			deploymentIn.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			deploymentIn.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			deploymentIn.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			ginkgo.By(fmt.Sprintf("Creating Deployment(%s.%s)", deploymentIn.Namespace, deploymentIn.Name))
 			tester.CreateDeployment(deploymentIn)
@@ -856,7 +856,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// update sidecarSet sidecar container failed image
 			ginkgo.By(fmt.Sprintf("update sidecarSet(%s) failed image", sidecarSetIn.Name))
 			sidecarSetIn, _ = kc.AppsV1alpha1().SidecarSets().Get(context.TODO(), sidecarSetIn.Name, metav1.GetOptions{})
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			sidecarSetIn.Spec.Containers[0].Image = BusyboxImage
 			tester.UpdateSidecarSet(sidecarSetIn)
 			time.Sleep(time.Second * 30)
 			except := &appsv1alpha1.SidecarSetStatus{
@@ -869,7 +869,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			// update sidecarSet sidecar container success image
 			ginkgo.By(fmt.Sprintf("update sidecarSet(%s) success image", sidecarSetIn.Name))
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx:latest"
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			tester.UpdateSidecarSet(sidecarSetIn)
 			time.Sleep(time.Second * 5)
 			except = &appsv1alpha1.SidecarSetStatus{
@@ -889,8 +889,8 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				sidecarcontrol.SidecarInjectOnInplaceUpdate: "true",
 			}
 			sidecarSetIn.Spec.Containers = sidecarSetIn.Spec.Containers[:1]
-			sidecarSetIn.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
+			sidecarSetIn.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			sidecarSetIn.Spec.UpdateStrategy = appsv1alpha1.SidecarSetUpdateStrategy{
 				Type: appsv1alpha1.RollingUpdateSidecarSetStrategyType,
 			}
@@ -900,14 +900,14 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
 			deploymentIn.Spec.Replicas = utilpointer.Int32Ptr(2)
-			deploymentIn.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			deploymentIn.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			deploymentIn.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			ginkgo.By(fmt.Sprintf("Creating Deployment(%s.%s)", deploymentIn.Namespace, deploymentIn.Name))
 			tester.CreateDeployment(deploymentIn)
 
 			// update sidecarSet sidecar container
 			ginkgo.By(fmt.Sprintf("update sidecarSet(%s) sidecar image, and paused", sidecarSetIn.Name))
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx:latest"
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			tester.UpdateSidecarSet(sidecarSetIn)
 			time.Sleep(time.Second * 5)
 			// paused
@@ -943,8 +943,8 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				sidecarcontrol.SidecarInjectOnInplaceUpdate: "true",
 			}
 			sidecarSetIn.Spec.Containers = sidecarSetIn.Spec.Containers[:1]
-			sidecarSetIn.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
+			sidecarSetIn.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			sidecarSetIn.Spec.UpdateStrategy = appsv1alpha1.SidecarSetUpdateStrategy{
 				Type: appsv1alpha1.RollingUpdateSidecarSetStrategyType,
 			}
@@ -954,7 +954,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
 			deploymentIn.Spec.Replicas = utilpointer.Int32Ptr(2)
-			deploymentIn.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			deploymentIn.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			deploymentIn.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			ginkgo.By(fmt.Sprintf("Creating Deployment(%s.%s)", deploymentIn.Namespace, deploymentIn.Name))
 			tester.CreateDeployment(deploymentIn)
@@ -971,7 +971,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			ginkgo.By(fmt.Sprintf("update SidecarSet %s sidecar container image", sidecarSetIn.Name))
 			// update sidecarSet sidecar container
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx:latest"
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			// update sidecarSet selector
 			sidecarSetIn.Spec.UpdateStrategy.Selector = &metav1.LabelSelector{
 				MatchLabels: map[string]string{
@@ -996,10 +996,10 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			for _, pod := range pods {
 				if _, ok := pod.Labels["canary.release"]; ok {
 					sidecarContainer := pod.Spec.Containers[0]
-					gomega.Expect(sidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/base/nginx:latest"))
+					gomega.Expect(sidecarContainer.Image).To(gomega.Equal(NginxImage))
 				} else {
 					sidecarContainer := pod.Spec.Containers[0]
-					gomega.Expect(sidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/nginx:latest"))
+					gomega.Expect(sidecarContainer.Image).To(gomega.Equal(NginxImage))
 				}
 			}
 
@@ -1027,8 +1027,8 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				sidecarcontrol.SidecarInjectOnInplaceUpdate: "true",
 			}
 			sidecarSetIn.Spec.Containers = sidecarSetIn.Spec.Containers[:1]
-			sidecarSetIn.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
+			sidecarSetIn.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			sidecarSetIn.Spec.UpdateStrategy = appsv1alpha1.SidecarSetUpdateStrategy{
 				Type: appsv1alpha1.RollingUpdateSidecarSetStrategyType,
 			}
@@ -1038,14 +1038,14 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
 			deploymentIn.Spec.Replicas = utilpointer.Int32Ptr(2)
-			deploymentIn.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			deploymentIn.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			deploymentIn.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			ginkgo.By(fmt.Sprintf("Creating Deployment(%s.%s)", deploymentIn.Namespace, deploymentIn.Name))
 			tester.CreateDeployment(deploymentIn)
 
 			// update sidecarSet sidecar container
 			ginkgo.By(fmt.Sprintf("update SidecarSet %s sidecar container image, and partition", sidecarSetIn.Name))
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx:latest"
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			// update sidecarSet partition
 			sidecarSetIn.Spec.UpdateStrategy.Partition = &intstr.IntOrString{
 				Type:   intstr.String,
@@ -1084,8 +1084,8 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				sidecarcontrol.SidecarInjectOnInplaceUpdate: "true",
 			}
 			sidecarSetIn.Spec.Containers = sidecarSetIn.Spec.Containers[:1]
-			sidecarSetIn.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
+			sidecarSetIn.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			sidecarSetIn.Spec.UpdateStrategy = appsv1alpha1.SidecarSetUpdateStrategy{
 				Type: appsv1alpha1.RollingUpdateSidecarSetStrategyType,
 			}
@@ -1095,14 +1095,14 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
 			deploymentIn.Spec.Replicas = utilpointer.Int32Ptr(2)
-			deploymentIn.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			deploymentIn.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			deploymentIn.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			ginkgo.By(fmt.Sprintf("Creating Deployment(%s.%s)", deploymentIn.Namespace, deploymentIn.Name))
 			tester.CreateDeployment(deploymentIn)
 
 			// update sidecarSet sidecar container
 			ginkgo.By(fmt.Sprintf("update SidecarSet %s sidecar container failed image, and MaxUnavailable", sidecarSetIn.Name))
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			sidecarSetIn.Spec.Containers[0].Image = BusyboxImage
 			// update sidecarSet MaxUnavailable
 			sidecarSetIn.Spec.UpdateStrategy.MaxUnavailable = &intstr.IntOrString{
 				Type:   intstr.String,
@@ -1120,7 +1120,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			// update sidecarSet sidecar container
 			ginkgo.By(fmt.Sprintf("update SidecarSet %s sidecar container success image", sidecarSetIn.Name))
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx:latest"
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			tester.UpdateSidecarSet(sidecarSetIn)
 			except = &appsv1alpha1.SidecarSetStatus{
 				MatchedPods:      2,
@@ -1153,11 +1153,11 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				sidecarcontrol.SidecarInjectOnInplaceUpdate: "true",
 			}
 			sidecarSetIn.Spec.Containers = sidecarSetIn.Spec.Containers[:1]
-			sidecarSetIn.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
+			sidecarSetIn.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			sidecarSetIn.Spec.Containers[0].UpgradeStrategy = appsv1alpha1.SidecarContainerUpgradeStrategy{
 				UpgradeType:          appsv1alpha1.SidecarContainerHotUpgrade,
-				HotUpgradeEmptyImage: "reg.docker.alibaba-inc.com/busybox:latest",
+				HotUpgradeEmptyImage: BusyboxImage,
 			}
 			ginkgo.By(fmt.Sprintf("Creating SidecarSet %s", sidecarSetIn.Name))
 			tester.CreateSidecarSet(sidecarSetIn)
@@ -1165,7 +1165,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
 			deploymentIn.Spec.Replicas = utilpointer.Int32Ptr(2)
-			deploymentIn.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			deploymentIn.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			deploymentIn.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			ginkgo.By(fmt.Sprintf("Creating Deployment(%s.%s)", deploymentIn.Namespace, deploymentIn.Name))
 			tester.CreateDeployment(deploymentIn)
@@ -1177,8 +1177,8 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				gomega.Expect(pod.Spec.Containers).To(gomega.HaveLen(len(sidecarSetIn.Spec.Containers) + len(deploymentIn.Spec.Template.Spec.Containers) + 1))
 				// except sidecar container -> image
 				exceptContainer := map[string]string{
-					"nginx-sidecar-1": "reg.docker.alibaba-inc.com/nginx:latest",
-					"nginx-sidecar-2": "reg.docker.alibaba-inc.com/busybox:latest",
+					"nginx-sidecar-1": NginxImage,
+					"nginx-sidecar-2": BusyboxImage,
 				}
 				for sidecar, image := range exceptContainer {
 					sidecarContainer := util.GetContainer(sidecar, pod)
@@ -1197,11 +1197,11 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				sidecarcontrol.SidecarInjectOnInplaceUpdate: "true",
 			}
 			sidecarSetIn.Spec.Containers = sidecarSetIn.Spec.Containers[:1]
-			sidecarSetIn.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
+			sidecarSetIn.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			sidecarSetIn.Spec.Containers[0].UpgradeStrategy = appsv1alpha1.SidecarContainerUpgradeStrategy{
 				UpgradeType:          appsv1alpha1.SidecarContainerHotUpgrade,
-				HotUpgradeEmptyImage: "reg.docker.alibaba-inc.com/busybox:latest",
+				HotUpgradeEmptyImage: BusyboxImage,
 			}
 			ginkgo.By(fmt.Sprintf("Creating SidecarSet %s", sidecarSetIn.Name))
 			tester.CreateSidecarSet(sidecarSetIn)
@@ -1209,7 +1209,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
 			deploymentIn.Spec.Replicas = utilpointer.Int32Ptr(1)
-			deploymentIn.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			deploymentIn.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			deploymentIn.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			ginkgo.By(fmt.Sprintf("Creating Deployment(%s.%s)", deploymentIn.Namespace, deploymentIn.Name))
 			tester.CreateDeployment(deploymentIn)
@@ -1221,15 +1221,15 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			podIn := pods[0]
 			workSidecarContainer := util.GetContainer(sidecarcontrol.GetPodHotUpgradeInfoInAnnotations(podIn)["nginx-sidecar"], podIn)
 			gomega.Expect(workSidecarContainer.Name).To(gomega.Equal("nginx-sidecar-1"))
-			gomega.Expect(workSidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/nginx:latest"))
+			gomega.Expect(workSidecarContainer.Image).To(gomega.Equal(NginxImage))
 			_, emptyContainer := sidecarcontrol.GetPodHotUpgradeContainers("nginx-sidecar", podIn)
 			emptySidecarContainer := util.GetContainer(emptyContainer, podIn)
 			gomega.Expect(emptySidecarContainer.Name).To(gomega.Equal("nginx-sidecar-2"))
-			gomega.Expect(emptySidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/busybox:latest"))
+			gomega.Expect(emptySidecarContainer.Image).To(gomega.Equal(BusyboxImage))
 
 			// update sidecarSet sidecar container
 			ginkgo.By(fmt.Sprintf("update SidecarSet %s sidecar container image", sidecarSetIn.Name))
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx:latest"
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			tester.UpdateSidecarSet(sidecarSetIn)
 			except := &appsv1alpha1.SidecarSetStatus{
 				MatchedPods:      1,
@@ -1247,15 +1247,15 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			podIn = pods[0]
 			workSidecarContainer = util.GetContainer(sidecarcontrol.GetPodHotUpgradeInfoInAnnotations(podIn)["nginx-sidecar"], podIn)
 			gomega.Expect(workSidecarContainer.Name).To(gomega.Equal("nginx-sidecar-2"))
-			gomega.Expect(workSidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/base/nginx:latest"))
+			gomega.Expect(workSidecarContainer.Image).To(gomega.Equal(NginxImage))
 			_, emptyContainer = sidecarcontrol.GetPodHotUpgradeContainers("nginx-sidecar", podIn)
 			emptySidecarContainer = util.GetContainer(emptyContainer, podIn)
 			gomega.Expect(emptySidecarContainer.Name).To(gomega.Equal("nginx-sidecar-1"))
-			gomega.Expect(emptySidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/busybox:latest"))
+			gomega.Expect(emptySidecarContainer.Image).To(gomega.Equal(BusyboxImage))
 
 			//update sidecarSet sidecar container again
 			ginkgo.By(fmt.Sprintf("update SidecarSet %s sidecar container image again", sidecarSetIn.Name))
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			tester.UpdateSidecarSet(sidecarSetIn)
 			except = &appsv1alpha1.SidecarSetStatus{
 				MatchedPods:      1,
@@ -1272,11 +1272,11 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			podIn = pods[0]
 			workSidecarContainer = util.GetContainer(sidecarcontrol.GetPodHotUpgradeInfoInAnnotations(podIn)["nginx-sidecar"], podIn)
 			gomega.Expect(workSidecarContainer.Name).To(gomega.Equal("nginx-sidecar-1"))
-			gomega.Expect(workSidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/nginx:latest"))
+			gomega.Expect(workSidecarContainer.Image).To(gomega.Equal(NginxImage))
 			_, emptyContainer = sidecarcontrol.GetPodHotUpgradeContainers("nginx-sidecar", podIn)
 			emptySidecarContainer = util.GetContainer(emptyContainer, podIn)
 			gomega.Expect(emptySidecarContainer.Name).To(gomega.Equal("nginx-sidecar-2"))
-			gomega.Expect(emptySidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/busybox:latest"))
+			gomega.Expect(emptySidecarContainer.Image).To(gomega.Equal(BusyboxImage))
 			ginkgo.By(fmt.Sprintf("sidecarSet upgrade hot sidecar container image done"))
 		})
 
@@ -1288,11 +1288,11 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 				sidecarcontrol.SidecarInjectOnInplaceUpdate: "true",
 			}
 			sidecarSetIn.Spec.Containers = sidecarSetIn.Spec.Containers[:1]
-			sidecarSetIn.Spec.InitContainers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/nginx:latest"
+			sidecarSetIn.Spec.InitContainers[0].Image = BusyboxImage
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			sidecarSetIn.Spec.Containers[0].UpgradeStrategy = appsv1alpha1.SidecarContainerUpgradeStrategy{
 				UpgradeType:          appsv1alpha1.SidecarContainerHotUpgrade,
-				HotUpgradeEmptyImage: "reg.docker.alibaba-inc.com/busybox:latest",
+				HotUpgradeEmptyImage: BusyboxImage,
 			}
 			ginkgo.By(fmt.Sprintf("Creating SidecarSet %s", sidecarSetIn.Name))
 			tester.CreateSidecarSet(sidecarSetIn)
@@ -1300,7 +1300,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			// create deployment
 			deploymentIn := tester.NewBaseDeployment(ns)
 			deploymentIn.Spec.Replicas = utilpointer.Int32Ptr(2)
-			deploymentIn.Spec.Template.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			deploymentIn.Spec.Template.Spec.Containers[0].Image = BusyboxImage
 			deploymentIn.Spec.Template.Spec.Tolerations = newAsiTolerations()
 			ginkgo.By(fmt.Sprintf("Creating Deployment(%s.%s)", deploymentIn.Namespace, deploymentIn.Name))
 			tester.CreateDeployment(deploymentIn)
@@ -1312,15 +1312,15 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			podIn := pods[0]
 			workSidecarContainer := util.GetContainer(sidecarcontrol.GetPodHotUpgradeInfoInAnnotations(podIn)["nginx-sidecar"], podIn)
 			gomega.Expect(workSidecarContainer.Name).To(gomega.Equal("nginx-sidecar-1"))
-			gomega.Expect(workSidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/nginx:latest"))
+			gomega.Expect(workSidecarContainer.Image).To(gomega.Equal(NginxImage))
 			_, emptyContainer := sidecarcontrol.GetPodHotUpgradeContainers("nginx-sidecar", podIn)
 			emptySidecarContainer := util.GetContainer(emptyContainer, podIn)
 			gomega.Expect(emptySidecarContainer.Name).To(gomega.Equal("nginx-sidecar-2"))
-			gomega.Expect(emptySidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/busybox:latest"))
+			gomega.Expect(emptySidecarContainer.Image).To(gomega.Equal(BusyboxImage))
 
 			// update sidecarSet sidecar container failed image
 			ginkgo.By(fmt.Sprintf("Update SidecarSet(%s) with failed image", sidecarSetIn.Name))
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/busybox:latest"
+			sidecarSetIn.Spec.Containers[0].Image = BusyboxImage
 			tester.UpdateSidecarSet(sidecarSetIn)
 			except := &appsv1alpha1.SidecarSetStatus{
 				MatchedPods:      2,
@@ -1333,7 +1333,7 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 
 			ginkgo.By(fmt.Sprintf("Update SidecarSet(%s) with success image", sidecarSetIn.Name))
 			//update sidecarSet sidecar container again, and success image
-			sidecarSetIn.Spec.Containers[0].Image = "reg.docker.alibaba-inc.com/base/nginx:latest"
+			sidecarSetIn.Spec.Containers[0].Image = NginxImage
 			tester.UpdateSidecarSet(sidecarSetIn)
 			except = &appsv1alpha1.SidecarSetStatus{
 				MatchedPods:      2,
@@ -1351,20 +1351,20 @@ var _ = SIGDescribe("sidecarset-asi", func() {
 			podIn1 := pods[0]
 			workSidecarContainer = util.GetContainer(sidecarcontrol.GetPodHotUpgradeInfoInAnnotations(podIn1)["nginx-sidecar"], podIn1)
 			gomega.Expect(workSidecarContainer.Name).To(gomega.Equal("nginx-sidecar-2"))
-			gomega.Expect(workSidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/base/nginx:latest"))
+			gomega.Expect(workSidecarContainer.Image).To(gomega.Equal(NginxImage))
 			_, emptyContainer = sidecarcontrol.GetPodHotUpgradeContainers("nginx-sidecar", podIn1)
 			emptySidecarContainer = util.GetContainer(emptyContainer, podIn1)
 			gomega.Expect(emptySidecarContainer.Name).To(gomega.Equal("nginx-sidecar-1"))
-			gomega.Expect(emptySidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/busybox:latest"))
+			gomega.Expect(emptySidecarContainer.Image).To(gomega.Equal(BusyboxImage))
 			// pod[1]
 			podIn2 := pods[1]
 			workSidecarContainer = util.GetContainer(sidecarcontrol.GetPodHotUpgradeInfoInAnnotations(podIn2)["nginx-sidecar"], podIn2)
 			gomega.Expect(workSidecarContainer.Name).To(gomega.Equal("nginx-sidecar-2"))
-			gomega.Expect(workSidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/base/nginx:latest"))
+			gomega.Expect(workSidecarContainer.Image).To(gomega.Equal(NginxImage))
 			_, emptyContainer = sidecarcontrol.GetPodHotUpgradeContainers("nginx-sidecar", podIn2)
 			emptySidecarContainer = util.GetContainer(emptyContainer, podIn2)
 			gomega.Expect(emptySidecarContainer.Name).To(gomega.Equal("nginx-sidecar-1"))
-			gomega.Expect(emptySidecarContainer.Image).To(gomega.Equal("reg.docker.alibaba-inc.com/busybox:latest"))
+			gomega.Expect(emptySidecarContainer.Image).To(gomega.Equal(BusyboxImage))
 
 			ginkgo.By(fmt.Sprintf("sidecarSet upgrade hot sidecar container failed image done"))
 		})
