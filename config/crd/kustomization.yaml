@@ -29,6 +29,7 @@ patchesStrategicMerge:
 #- patches/webhook_in_broadcastjobs.yaml
 #- patches/webhook_in_sidecarsets.yaml
 - patches/webhook_in_statefulsets.yaml
+- patch_asi_crds.yaml
 #- patches/webhook_in_uniteddeployments.yaml
 #- patches/webhook_in_daemonsets.yaml
 #- patches/webhook_in_nodeimages.yaml
