@@ -258,8 +258,12 @@ func (c *asiControl) IsPodStateConsistent(pod *v1.Pod, sidecarContainers sets.St
 	return true
 }
 
-func (c *asiControl) IsSidecarSetUpgradable(pod *v1.Pod) bool {
+func (c *asiControl) IsSidecarSetUpgradable(pod *v1.Pod) (canUpgrade, consistent bool) {
 	sidecarSet := c.GetSidecarset()
+	// If the sidecar container name changes, the Pod cannot be upgraded
+	if isSidecarContainersChanged(sidecarSet, pod) {
+		return false, false
+	}
 	// cStatus: container.name -> containerStatus.Ready
 	cStatus := map[string]bool{}
 	for _, status := range pod.Status.ContainerStatuses {
@@ -277,15 +281,10 @@ func (c *asiControl) IsSidecarSetUpgradable(pod *v1.Pod) bool {
 		}
 	}
 	if !utilasi.IsPodSpecHashPartConsistent(pod, containersToCheckConsistent) {
-		return false
+		return true, false
 	}
 
-	// If the sidecar container name changes, the Pod cannot be upgraded
-	if isSidecarContainersChanged(sidecarSet, pod) {
-		return false
-	}
-
-	return true
+	return true, true
 }
 
 func isSidecarContainersChanged(sidecarSet *appsv1alpha1.SidecarSet, pod *v1.Pod) bool {
