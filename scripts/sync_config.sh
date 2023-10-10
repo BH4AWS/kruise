@@ -29,7 +29,7 @@ for file in *; do
     plural=$(echo $plural | sed -e 's/^ *//' -e 's/ *$//')
 
     # Rename the file using the extracted field values
-    mv $file "$current_dir/APP-META/docker-config/pack/crds/${group}_${plural}.yaml"
+    mv $file "$current_dir/APP-META/docker-config/job/config/${group}_${plural}.yaml"
 done
 
 cd $current_dir
@@ -45,18 +45,21 @@ for file in *; do
       sed -i '' 's/mutating-webhook-configuration/aaa-kruise-mutating-webhook-configuration/g' $file
       sed -i '' 's/name: webhook-service/name: kruise-webhook-service/g' $file
       sed -i '' 's/namespace: system/namespace: kube-system/g' $file
-      mv $file "$current_dir/APP-META/docker-config/pack/crds/config/mutating.yaml"
+      mv $file "$current_dir/APP-META/docker-config/job/config/mutating.yaml"
     fi
 
     if [[ "$kind" == "ValidatingWebhookConfiguration" ]]; then
       sed -i '' 's/validating-webhook-configuration/kruise-validating-webhook-configuration/g' $file
       sed -i '' 's/name: webhook-service/name: kruise-webhook-service/g' $file
       sed -i '' 's/namespace: system/namespace: kube-system/g' $file
-      mv $file "$current_dir/APP-META/docker-config/pack/crds/config/validating.yaml"
+      mv $file "$current_dir/APP-META/docker-config/job/config/validating.yaml"
     fi
 done
+
+cd $current_dir
+kustomize build config/rbac > $temp_dir/rbac.yaml
+mv $temp_dir/rbac.yaml "$current_dir/APP-META/docker-config/job/config/rbac.yaml"
 
 # Clean up the temporary directory
 cd ..
 rm -rf $temp_dir
-cd $current_dir

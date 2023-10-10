@@ -8,5 +8,5 @@ roleRef:
   name: manager-role
 subjects:
 - kind: ServiceAccount
-  name: manager
-  namespace: system
+  name: kruise-manager-sa
+  namespace: kube-system
