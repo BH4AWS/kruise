@@ -63,6 +63,8 @@ var (
 	inPlaceUpdateTemplateSpecPatchASIRexp = regexp.MustCompile("^/spec/containers/([0-9]+)/(image|command|args|env|livenessProbe|readinessProbe|lifecycle)")
 
 	podPhaseToOrdinal = map[v1.PodPhase]int{v1.PodPending: 0, v1.PodUnknown: 1, v1.PodRunning: 2}
+
+	AliRunMode = sets.NewString("common_vm", "light")
 )
 
 const (
@@ -773,7 +775,7 @@ func (c *asiControl) injectAdditionalEnvsIntoPod(pod *v1.Pod, envs []v1.EnvVar, 
 					break
 				}
 			}
-			isCommonVM := util.GetContainerEnvValue(c, "ali_run_mode") == "common_vm"
+			isCommonVM := AliRunMode.Has(util.GetContainerEnvValue(c, "ali_run_mode"))
 			if !foundInTemplate || !isCommonVM {
 				continue
 			}
