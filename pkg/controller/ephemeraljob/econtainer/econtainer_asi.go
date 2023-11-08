@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
 
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	kubeclient "github.com/openkruise/kruise/pkg/client"
@@ -15,12 +17,22 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
+	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
 )
+
+const (
+	// reference doc: https://aliyuque.antfin.com/asidocs/xg2eea/gbbhkafkutrrpzmm
+	DeletingEphemeralContainersAnnoKey = "alibabacloud.com/deleting-ephemeral-containers"
+	ManagingEphemeralContainersAnnoKey = "alibabacloud.com/managing-ephemeral-containers"
+)
+
+var defaultRetryDuration = 2 * time.Second
 
 type asiControl struct {
 	*appsv1alpha1.EphemeralJob
 	kControl *k8sControl
+	recorder record.EventRecorder
 }
 
 var _ EphemeralContainerInterface = &asiControl{}
@@ -43,64 +55,89 @@ func (k *asiControl) GetEphemeralContainers(targetPod *v1.Pod) []v1.EphemeralCon
 	return k.kControl.GetEphemeralContainers(targetPod)
 }
 
-// create ephemeral containers in k8s 1.20
-//func (k *asiControl) CreateEphemeralContainer(targetPod *v1.Pod) error {
-//	kubeclient := kubeclient.GetGenericClient().KubeClient
-//	eContainers, err := kubeclient.CoreV1().Pods(targetPod.Namespace).GetEphemeralContainers(context.TODO(), targetPod.Name, metav1.GetOptions{})
-//	if err != nil {
-//		return err
-//	}
-//	if eContainers == nil {
-//		eContainers = &v1.EphemeralContainers{}
-//		eContainers.Namespace = k.Namespace
-//		eContainers.Name = k.Name
-//		eContainers.EphemeralContainers = k.Spec.Template.EphemeralContainers
-//	}
-//	ephemeralContainerMaps, _ := getEphemeralContainersMaps(eContainers.EphemeralContainers)
-//	for _, e := range k.Spec.Template.EphemeralContainers {
-//		if _, ok := ephemeralContainerMaps[e.Name]; ok {
-//			klog.Warningf("ephemeral container %s has exist in pod %s", e.Name, targetPod.Name)
-//			continue
-//		}
-//		klog.Infof("ephemeral container %s add to pod %s", e.Name, targetPod.Name)
-//		e.Env = append(e.Env, v1.EnvVar{
-//			Name:  appsv1alpha1.EphemeralContainerEnvKey,
-//			Value: string(k.UID),
-//		})
-//		eContainers.EphemeralContainers = append(eContainers.EphemeralContainers, e)
-//	}
-//	_, err = kubeclient.CoreV1().Pods(targetPod.Namespace).UpdateEphemeralContainers(context.TODO(), targetPod.Name, eContainers, metav1.UpdateOptions{})
-//	return err
-//}
-
 func (k *asiControl) CreateEphemeralContainer(targetPod *v1.Pod) error {
 	return k.kControl.CreateEphemeralContainer(targetPod)
 }
 
-// RemoveEphemeralContainer depends on asi api-server and kubelet gc.
-//func (k *asiControl) RemoveEphemeralContainer(targetPod *v1.Pod) error {
-//	kubeclient := kubeclient.GetGenericClient().KubeClient
-//	eContainers, err := kubeclient.CoreV1().Pods(targetPod.Namespace).GetEphemeralContainers(context.TODO(), targetPod.Name, metav1.GetOptions{})
-//	if err != nil {
-//		return err
-//	}
-//	if eContainers == nil {
-//		return nil
-//	}
-//	ephemeralContainerMaps, _ := getEphemeralContainersMaps(eContainers.EphemeralContainers)
-//	for _, e := range k.Spec.Template.EphemeralContainers {
-//		if _, ok := ephemeralContainerMaps[e.Name]; ok {
-//			eContainers.EphemeralContainers = deleteEphemeralContainers(eContainers.EphemeralContainers, e.Name)
-//		}
-//	}
-//	_, err = kubeclient.CoreV1().Pods(targetPod.Namespace).UpdateEphemeralContainers(context.TODO(), targetPod.Name, eContainers, metav1.UpdateOptions{})
-//	return err
-//}
+func (k *asiControl) ContainsEphemeralContainer(target *v1.Pod) (bool, bool) {
+	deletingSet := sets.NewString(strings.Split(target.Annotations[DeletingEphemeralContainersAnnoKey], ",")...)
+	for _, ec := range k.Spec.Template.EphemeralContainers {
+		if deletingSet.Has(ec.Name) {
+			return true, true
+		}
+	}
+	return k.kControl.ContainsEphemeralContainer(target)
+}
 
-// RemoveEphemeralContainer depends on asi api-server and kubelet gc. this will work in both 1.20 and 1.22.
-func (k *asiControl) RemoveEphemeralContainer(targetPod *v1.Pod) error {
+func (k *asiControl) RemoveEphemeralContainer(pod *v1.Pod) (*time.Duration, error) {
 	needToRemove := getEphemeralContainerNames(k.Spec.Template.EphemeralContainers)
-	err := k.removeEphemeralContainer(targetPod, needToRemove)
+	managingSet := sets.NewString(strings.Split(pod.Annotations[ManagingEphemeralContainersAnnoKey], ",")...)
+
+	// any ephemeral container still running
+	running := func() bool {
+		for _, status := range pod.Status.EphemeralContainerStatuses {
+			if !needToRemove.Has(status.Name) {
+				continue
+			}
+			if status.State.Terminated == nil {
+				return true
+			}
+		}
+		return false
+	}()
+	if running {
+		klog.Warningf("E-containers in pod %s are still running when deleting ephemeralJob %s", klog.KObj(pod), klog.KObj(k.EphemeralJob))
+		return &defaultRetryDuration, nil
+	}
+
+	// any ephemeral container still is managed by kubelet
+	runtimeRemoved := func() bool {
+		for ec := range needToRemove {
+			if managingSet.Has(ec) {
+				return false
+			}
+		}
+		return true
+	}()
+
+	// all ephemeral containers have been removed from spec and status of pod
+	serverRemoved := func() bool {
+		for _, status := range pod.Status.EphemeralContainerStatuses {
+			if needToRemove.Has(status.Name) {
+				return false
+			}
+		}
+		for _, ec := range pod.Spec.EphemeralContainers {
+			if needToRemove.Has(ec.Name) {
+				return false
+			}
+		}
+		return true
+	}()
+
+	switch {
+	case !runtimeRemoved && !serverRemoved:
+		klog.V(4).Infof("Notifying kubelet to remove e-containers in pod %s for ephemeralJob %s", klog.KObj(pod), klog.KObj(k.EphemeralJob))
+		return &defaultRetryDuration, k.patchDeletingAnnotation(pod, needToRemove, "Add")
+
+	case runtimeRemoved && !serverRemoved:
+		klog.V(4).Infof("E-containers have been removed in pod %s by kubelet for ephemeralJob %s", klog.KObj(pod), klog.KObj(k.EphemeralJob))
+		return &defaultRetryDuration, k.removeEphemeralContainer(pod, needToRemove)
+
+	case runtimeRemoved && serverRemoved:
+		klog.V(4).Infof("E-containers have been removed in pod %s by api-server for ephemeralJob %s", klog.KObj(pod), klog.KObj(k.EphemeralJob))
+		return nil, k.patchDeletingAnnotation(pod, needToRemove, "Del")
+
+	case !runtimeRemoved && serverRemoved:
+		err := fmt.Errorf("e-containers have been removed by api-server but not kubelet in pod %s for ephemeralJob %s", klog.KObj(pod), klog.KObj(k.EphemeralJob))
+		return nil, err
+	}
+	return nil, nil
+}
+
+// removeEphemeralContainer depends on asi api-server and kubelet gc. this will work in both 1.20 and 1.22.
+func (k *asiControl) removeEphemeralContainer(targetPod *v1.Pod, needToRemove sets.String) error {
+	err := k.doRemoveEphemeralContainer(targetPod, needToRemove)
 	if err != nil {
 		// The apiserver will return a 404 when the EphemeralContainers feature is disabled because the `/ephemeralcontainers` subresource
 		// is missing. Unlike the 404 returned by a missing pod, the status details will be empty.
@@ -114,14 +151,14 @@ func (k *asiControl) RemoveEphemeralContainer(targetPod *v1.Pod) error {
 		// using the old API.
 		if runtime.IsNotRegisteredError(err) {
 			klog.V(1).Infof("Falling back to legacy ephemeral container API because server returned error: %v", err)
-			return k.removeEphemeralContainerLegacy(targetPod, needToRemove)
+			return k.doRemoveEphemeralContainerLegacy(targetPod, needToRemove)
 		}
 	}
 	return err
 }
 
 // removeEphemeralContainerLegacy depends on asi api-server and kubelet gc. for 1.20.
-func (k *asiControl) removeEphemeralContainerLegacy(targetPod *v1.Pod, needToRemove sets.String) error {
+func (k *asiControl) doRemoveEphemeralContainerLegacy(targetPod *v1.Pod, needToRemove sets.String) error {
 	kubeClient := kubeclient.GetGenericClient().KubeClient
 	newPod, err := kubeClient.CoreV1().Pods(targetPod.Namespace).Get(context.TODO(), targetPod.Name, metav1.GetOptions{})
 	if err != nil {
@@ -146,7 +183,7 @@ func (k *asiControl) removeEphemeralContainerLegacy(targetPod *v1.Pod, needToRem
 }
 
 // removeEphemeralContainerLegacy depends on asi api-server and kubelet gc. for 1.22.
-func (k *asiControl) removeEphemeralContainer(targetPod *v1.Pod, needToRemove sets.String) error {
+func (k *asiControl) doRemoveEphemeralContainer(targetPod *v1.Pod, needToRemove sets.String) error {
 	oldPodJS, _ := json.Marshal(targetPod)
 	newPod := targetPod.DeepCopy()
 	newPod.Spec.EphemeralContainers = deleteEphemeralContainers(newPod.Spec.EphemeralContainers, needToRemove)
@@ -163,6 +200,43 @@ func (k *asiControl) removeEphemeralContainer(targetPod *v1.Pod, needToRemove se
 	_, err = kubeClient.CoreV1().Pods(targetPod.Namespace).
 		Patch(context.TODO(), targetPod.Name, types.StrategicMergePatchType, patch, metav1.PatchOptions{}, "ephemeralcontainers")
 	return err
+}
+
+func (k *asiControl) patchDeletingAnnotation(pod *v1.Pod, needToRemove sets.String, op string) error {
+	var patchBody string
+	switch op {
+	case "Add":
+		modified := addDeletingAnnotation(pod, needToRemove)
+		if modified == pod.Annotations[DeletingEphemeralContainersAnnoKey] {
+			return nil
+		}
+		patchBody = fmt.Sprintf(`{"metadata":{"annotations":{"%s":"%s"}}}`,
+			DeletingEphemeralContainersAnnoKey, modified)
+	case "Del":
+		modified := delDeletingAnnotation(pod, needToRemove)
+		if modified == pod.Annotations[DeletingEphemeralContainersAnnoKey] {
+			return nil
+		}
+		patchBody = fmt.Sprintf(`{"metadata":{"annotations":{"%s":"%s"}}}`,
+			DeletingEphemeralContainersAnnoKey, modified)
+	default:
+		panic("unknown 'op' parameter in patchDeletingAnnotation func")
+	}
+
+	kubeClient := kubeclient.GetGenericClient().KubeClient
+	_, err := kubeClient.CoreV1().Pods(pod.Namespace).
+		Patch(context.TODO(), pod.Name, types.StrategicMergePatchType, []byte(patchBody), metav1.PatchOptions{})
+	return err
+}
+
+func addDeletingAnnotation(pod *v1.Pod, needToRemove sets.String) string {
+	deletingSet := sets.NewString(strings.Split(pod.Annotations[DeletingEphemeralContainersAnnoKey], ",")...).Delete("")
+	return strings.Join(deletingSet.Union(needToRemove).List(), ",")
+}
+
+func delDeletingAnnotation(pod *v1.Pod, needToRemove sets.String) string {
+	deletingSet := sets.NewString(strings.Split(pod.Annotations[DeletingEphemeralContainersAnnoKey], ",")...).Delete("")
+	return strings.Join(deletingSet.Difference(needToRemove).List(), ",")
 }
 
 func deleteEphemeralContainers(ephemeralContainers []v1.EphemeralContainer, needToRemove sets.String) []v1.EphemeralContainer {
