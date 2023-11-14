@@ -37,7 +37,7 @@ type StartupProbeRunnable struct {
 	StartupProbeAddr string
 }
 
-func (r StartupProbeRunnable) Start(ctx context.Context) error {
+func (r *StartupProbeRunnable) Start(ctx context.Context) error {
 	r.mu.Lock()
 	if r.Started {
 		return errors.New("controller was started more than once. This is likely to be caused by being added to a manager multiple times")
@@ -58,8 +58,8 @@ func (r StartupProbeRunnable) Start(ctx context.Context) error {
 	return nil
 }
 
-var _ manager.LeaderElectionRunnable = StartupProbeRunnable{}
+var _ manager.LeaderElectionRunnable = &StartupProbeRunnable{}
 
-func (r StartupProbeRunnable) NeedLeaderElection() bool {
+func (r *StartupProbeRunnable) NeedLeaderElection() bool {
 	return false
 }

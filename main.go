@@ -237,7 +237,7 @@ func main() {
 	}()
 	// add startup runnable, and wait for cache sync complete, then listen startupProbe port
 	startupRunnable := utilasi.StartupProbeRunnable{StartupProbeAddr: startupProbeAddr}
-	mgr.Add(startupRunnable)
+	mgr.Add(&startupRunnable)
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctx); err != nil {
 		setupLog.Error(err, "problem running manager")
