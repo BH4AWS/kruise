@@ -23,14 +23,6 @@ import (
 	"reflect"
 	"strings"
 
-	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
-	"github.com/openkruise/kruise/pkg/features"
-	"github.com/openkruise/kruise/pkg/util"
-	utilclient "github.com/openkruise/kruise/pkg/util/client"
-	"github.com/openkruise/kruise/pkg/util/controllerfinder"
-	utildiscovery "github.com/openkruise/kruise/pkg/util/discovery"
-	utilfeature "github.com/openkruise/kruise/pkg/util/feature"
-	"github.com/openkruise/kruise/pkg/util/ratelimiter"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -44,6 +36,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+
+	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
+	"github.com/openkruise/kruise/pkg/features"
+	"github.com/openkruise/kruise/pkg/util"
+	utilclient "github.com/openkruise/kruise/pkg/util/client"
+	"github.com/openkruise/kruise/pkg/util/controllerfinder"
+	utildiscovery "github.com/openkruise/kruise/pkg/util/discovery"
+	utilfeature "github.com/openkruise/kruise/pkg/util/feature"
+	"github.com/openkruise/kruise/pkg/util/ratelimiter"
 )
 
 func init() {
@@ -234,13 +235,16 @@ func (r *ReconcilePodProbeMarker) updateNodePodProbes(ppm *appsv1alpha1.PodProbe
 				exist = true
 				for j := range ppm.Spec.Probes {
 					probe := ppm.Spec.Probes[j]
+					if podProbe.IP == "" {
+						podProbe.IP = pod.Status.PodIP
+					}
 					setPodContainerProbes(podProbe, probe, ppm.Name)
 				}
 				break
 			}
 		}
 		if !exist {
-			podProbe := appsv1alpha1.PodProbe{Name: pod.Name, Namespace: pod.Namespace, UID: string(pod.UID)}
+			podProbe := appsv1alpha1.PodProbe{Name: pod.Name, Namespace: pod.Namespace, UID: string(pod.UID), IP: pod.Status.PodIP}
 			for j := range ppm.Spec.Probes {
 				probe := ppm.Spec.Probes[j]
 				podProbe.Probes = append(podProbe.Probes, appsv1alpha1.ContainerProbe{

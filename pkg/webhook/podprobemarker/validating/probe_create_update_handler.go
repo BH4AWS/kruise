@@ -24,11 +24,12 @@ import (
 	"regexp"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/kubernetes/pkg/apis/core"
+
 	"github.com/openkruise/kruise/pkg/features"
 	utilfeature "github.com/openkruise/kruise/pkg/util/feature"
 
-	"github.com/openkruise/kruise/apis/apps/pub"
-	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
 	genericvalidation "k8s.io/apimachinery/pkg/api/validation"
@@ -41,6 +42,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	"github.com/openkruise/kruise/apis/apps/pub"
+	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 )
 
 const (
@@ -205,9 +209,13 @@ func validateHandler(handler *corev1.ProbeHandler, fldPath *field.Path) field.Er
 		numHandlers++
 		allErrors = append(allErrors, validateExecAction(handler.Exec, fldPath.Child("exec"))...)
 	}
-	if handler.HTTPGet != nil || handler.TCPSocket != nil {
+	if handler.TCPSocket != nil {
 		numHandlers++
-		allErrors = append(allErrors, field.Forbidden(fldPath.Child("probe"), "current only support exec probe"))
+		allErrors = append(allErrors, field.Forbidden(fldPath.Child("probe"), "current no support tcp probe"))
+	}
+	if handler.HTTPGet != nil {
+		numHandlers++
+		allErrors = append(allErrors, validateHTTPGetAction(handler.HTTPGet, fldPath.Child("httpGet"))...)
 	}
 	if numHandlers == 0 {
 		allErrors = append(allErrors, field.Required(fldPath, "must specify a handler type"))
@@ -221,6 +229,41 @@ func validateExecAction(exec *corev1.ExecAction, fldPath *field.Path) field.Erro
 		allErrors = append(allErrors, field.Required(fldPath.Child("command"), ""))
 	}
 	return allErrors
+}
+
+var supportedHTTPSchemes = sets.NewString(string(core.URISchemeHTTP), string(core.URISchemeHTTPS))
+
+func validateHTTPGetAction(http *corev1.HTTPGetAction, fldPath *field.Path) field.ErrorList {
+	allErrors := field.ErrorList{}
+	if len(http.Path) == 0 {
+		allErrors = append(allErrors, field.Required(fldPath.Child("path"), ""))
+	}
+	allErrors = append(allErrors, ValidatePortNumOrName(http.Port, fldPath.Child("port"))...)
+	if !supportedHTTPSchemes.Has(string(http.Scheme)) {
+		allErrors = append(allErrors, field.NotSupported(fldPath.Child("scheme"), http.Scheme, supportedHTTPSchemes.List()))
+	}
+	for _, header := range http.HTTPHeaders {
+		for _, msg := range validationutil.IsHTTPHeaderName(header.Name) {
+			allErrors = append(allErrors, field.Invalid(fldPath.Child("httpHeaders"), header.Name, msg))
+		}
+	}
+	return allErrors
+}
+
+func ValidatePortNumOrName(port intstr.IntOrString, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+	if port.Type == intstr.Int {
+		for _, msg := range validationutil.IsValidPortNum(port.IntValue()) {
+			allErrs = append(allErrs, field.Invalid(fldPath, port.IntValue(), msg))
+		}
+	} else if port.Type == intstr.String {
+		for _, msg := range validationutil.IsValidPortName(port.StrVal) {
+			allErrs = append(allErrs, field.Invalid(fldPath, port.StrVal, msg))
+		}
+	} else {
+		allErrs = append(allErrs, field.InternalError(fldPath, fmt.Errorf("unknown type: %v", port.Type)))
+	}
+	return allErrs
 }
 
 func validateProbeMarkerPolicy(policy *appsv1alpha1.ProbeMarkerPolicy, fldPath *field.Path) field.ErrorList {

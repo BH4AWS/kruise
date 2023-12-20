@@ -22,11 +22,12 @@ import (
 	"reflect"
 	"time"
 
-	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
-	"github.com/openkruise/kruise/pkg/util"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1"
 	"k8s.io/klog/v2"
+
+	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
+	"github.com/openkruise/kruise/pkg/util"
 )
 
 // worker handles the periodic probing of its assigned container. Each worker has a go-routine
@@ -37,7 +38,7 @@ type worker struct {
 	// Channel for stopping the probe.
 	stopCh chan struct{}
 
-	// pod uid, container name, probe name
+	// pod uid, container name, probe name, ip
 	key probeKey
 
 	// Describes the probe configuration
@@ -119,21 +120,21 @@ func (w *worker) doProbe() (keepGoing bool) {
 	defer func() { recover() }() // Actually eat panics (HandleCrash takes care of logging)
 	defer runtime.HandleCrash(func(_ interface{}) { keepGoing = true })
 
-	container, _ := w.probeController.fetchLatestPodContainer(w.key.podUID, w.key.containerName)
-	if container == nil {
+	containerRuntimeStatus, _ := w.probeController.fetchLatestPodContainer(w.key.podUID, w.key.containerName)
+	if containerRuntimeStatus == nil {
 		klog.V(5).Infof("Pod(%s/%s) container(%s) Not Found", w.key.podNs, w.key.podName, w.key.containerName)
 		return true
 	}
 
-	if w.containerID != container.Id {
+	if w.containerID != containerRuntimeStatus.Id {
 		if w.containerID != "" {
 			w.probeController.result.remove(w.containerID)
 		}
-		klog.V(5).Infof("Pod(%s/%s) container(%s) Id changed(%s -> %s)", w.key.podNs, w.key.podName, w.key.containerName, w.containerID, container.Id)
-		w.containerID = container.Id
+		klog.V(5).Infof("Pod(%s/%s) container(%s) Id changed(%s -> %s)", w.key.podNs, w.key.podName, w.key.containerName, w.containerID, containerRuntimeStatus.Id)
+		w.containerID = containerRuntimeStatus.Id
 		w.probeController.result.set(w.containerID, w.key, w.initialValue, "")
 	}
-	if container.State != runtimeapi.ContainerState_CONTAINER_RUNNING {
+	if containerRuntimeStatus.State != runtimeapi.ContainerState_CONTAINER_RUNNING {
 		klog.V(5).Infof("Pod(%s/%s) Non-running container(%s) probed", w.key.podNs, w.key.podName, w.key.containerName)
 		w.probeController.result.set(w.containerID, w.key, appsv1alpha1.ProbeFailed, fmt.Sprintf("Container(%s) is Non-running", w.key.containerName))
 	}
@@ -143,7 +144,7 @@ func (w *worker) doProbe() (keepGoing bool) {
 	if initialDelay < 1 {
 		initialDelay = 1
 	}
-	curDelay := int32(time.Since(time.Unix(0, container.StartedAt)).Seconds())
+	curDelay := int32(time.Since(time.Unix(0, containerRuntimeStatus.StartedAt)).Seconds())
 	if curDelay < initialDelay {
 		klog.V(5).Infof("Pod(%s:%s) container(%s) probe(%s) initialDelay(%d), but curDelay(%d)",
 			w.key.podNs, w.key.podName, w.key.containerName, w.key.probeName, initialDelay, curDelay)
@@ -152,7 +153,7 @@ func (w *worker) doProbe() (keepGoing bool) {
 
 	// the full container environment here, OR we must make a call to the CRI in order to get those environment
 	// values from the running container.
-	result, msg, err := w.probeController.prober.probe(w.spec, container, w.containerID)
+	result, msg, err := w.probeController.prober.probe(w.spec, w.key, containerRuntimeStatus, w.containerID)
 	if err != nil {
 		klog.Errorf("Pod(%s/%s) do container(%s) probe(%s) spec(%s) failed: %s",
 			w.key.podNs, w.key.podName, w.key.containerName, w.key.probeName, util.DumpJSON(w.spec), err.Error())
