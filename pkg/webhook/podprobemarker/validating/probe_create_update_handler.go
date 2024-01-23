@@ -27,8 +27,6 @@ import (
 	"github.com/openkruise/kruise/pkg/features"
 	utilfeature "github.com/openkruise/kruise/pkg/util/feature"
 
-	"github.com/openkruise/kruise/apis/apps/pub"
-	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
 	genericvalidation "k8s.io/apimachinery/pkg/api/validation"
@@ -41,6 +39,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	"github.com/openkruise/kruise/apis/apps/pub"
+	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 )
 
 const (
@@ -172,7 +173,7 @@ func validatePodProbeMarkerSpec(obj *appsv1alpha1.PodProbeMarker, fldPath *field
 
 func validateSelector(selector *metav1.LabelSelector, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
-	allErrs = append(allErrs, metavalidation.ValidateLabelSelector(selector, fldPath)...)
+	allErrs = append(allErrs, metavalidation.ValidateLabelSelector(selector, metavalidation.LabelSelectorValidationOptions{}, fldPath)...)
 	if len(selector.MatchLabels)+len(selector.MatchExpressions) == 0 {
 		allErrs = append(allErrs, field.Invalid(fldPath, selector, "empty selector is not valid for podProbeMarker."))
 	}

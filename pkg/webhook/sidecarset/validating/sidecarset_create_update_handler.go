@@ -24,6 +24,8 @@ import (
 	"regexp"
 	"strings"
 
+	"k8s.io/klog/v2"
+
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	"github.com/openkruise/kruise/pkg/control/sidecarcontrol"
 	"github.com/openkruise/kruise/pkg/util"
@@ -139,6 +141,7 @@ func (h *SidecarSetCreateUpdateHandler) validateSidecarSetSpec(obj *appsv1alpha1
 	} else {
 		allErrs = append(allErrs, validateContainersForSidecarSet(spec.InitContainers, spec.Containers, vols, fldPath.Root())...)
 	}
+	klog.Infof("c3: %v", allErrs)
 	// validating metadata
 	annotationKeys := sets.NewString()
 	if err := sidecarcontrol.ValidateSidecarSetPatchMetadataWhitelist(h.Client, obj); err != nil {
@@ -168,7 +171,8 @@ func (h *SidecarSetCreateUpdateHandler) validateSidecarSetSpec(obj *appsv1alpha1
 
 func validateSelector(selector *metav1.LabelSelector, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
-	allErrs = append(allErrs, metavalidation.ValidateLabelSelector(selector, fldPath)...)
+	allErrs = append(allErrs, metavalidation.ValidateLabelSelector(selector,
+		metavalidation.LabelSelectorValidationOptions{AllowInvalidLabelValueInSelector: true}, fldPath)...)
 	if len(selector.MatchLabels)+len(selector.MatchExpressions) == 0 {
 		allErrs = append(allErrs, field.Invalid(fldPath, selector, "empty selector is not valid for sidecarset."))
 	}

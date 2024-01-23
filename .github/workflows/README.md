@@ -1,0 +1,4 @@
+kind: https://github.com/kubernetes-sigs/kind
+
+https://kind.sigs.k8s.io/docs/user/quick-start
+https://github.com/kubernetes-sigs/kind/releases

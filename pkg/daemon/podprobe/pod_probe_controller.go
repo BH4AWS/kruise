@@ -26,15 +26,6 @@ import (
 	"sync"
 	"time"
 
-	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
-	"github.com/openkruise/kruise/pkg/client"
-	kruiseclient "github.com/openkruise/kruise/pkg/client/clientset/versioned"
-	clientalpha1 "github.com/openkruise/kruise/pkg/client/clientset/versioned/typed/apps/v1alpha1"
-	listersalpha1 "github.com/openkruise/kruise/pkg/client/listers/apps/v1alpha1"
-	daemonruntime "github.com/openkruise/kruise/pkg/daemon/criruntime"
-	daemonoptions "github.com/openkruise/kruise/pkg/daemon/options"
-	"github.com/openkruise/kruise/pkg/daemon/util"
-	commonutil "github.com/openkruise/kruise/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,6 +42,16 @@ import (
 	"k8s.io/gengo/examples/set-gen/sets"
 	"k8s.io/klog/v2"
 	kubelettypes "k8s.io/kubernetes/pkg/kubelet/types"
+
+	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
+	"github.com/openkruise/kruise/pkg/client"
+	kruiseclient "github.com/openkruise/kruise/pkg/client/clientset/versioned"
+	clientalpha1 "github.com/openkruise/kruise/pkg/client/clientset/versioned/typed/apps/v1alpha1"
+	listersalpha1 "github.com/openkruise/kruise/pkg/client/listers/apps/v1alpha1"
+	daemonruntime "github.com/openkruise/kruise/pkg/daemon/criruntime"
+	daemonoptions "github.com/openkruise/kruise/pkg/daemon/options"
+	"github.com/openkruise/kruise/pkg/daemon/util"
+	commonutil "github.com/openkruise/kruise/pkg/util"
 )
 
 const (
@@ -383,7 +384,7 @@ func (c *Controller) fetchLatestPodContainer(podUID, name string) (*runtimeapi.C
 		klog.Warningf("NodePodProbe not found runtimeService")
 		return nil, nil
 	}
-	containers, err := runtimeService.ListContainers(&runtimeapi.ContainerFilter{
+	containers, err := runtimeService.ListContainers(context.TODO(), &runtimeapi.ContainerFilter{
 		LabelSelector: map[string]string{kubelettypes.KubernetesPodUIDLabel: podUID},
 	})
 	if err != nil {
@@ -402,7 +403,7 @@ func (c *Controller) fetchLatestPodContainer(podUID, name string) (*runtimeapi.C
 	}
 	var containerStatus *runtimeapi.ContainerStatusResponse
 	if container != nil {
-		containerStatus, err = runtimeService.ContainerStatus(container.Id, false)
+		containerStatus, err = runtimeService.ContainerStatus(context.TODO(), container.Id, false)
 	}
 	return containerStatus.Status, err
 }
