@@ -320,6 +320,7 @@ func (c *Controller) manage(crr *appsv1alpha1.ContainerRecreateRequest) error {
 	klog.V(5).Infof("CRR %s/%s for Pod %s GetPodStatus: %v", crr.Namespace, crr.Name, pod.Name, util.DumpJSON(podStatus))
 
 	newCRRContainerRecreateStates := getCurrentCRRContainersRecreateStates(crr, podStatus)
+
 	if !reflect.DeepEqual(crr.Status.ContainerRecreateStates, newCRRContainerRecreateStates) {
 		return c.patchCRRContainerRecreateStates(crr, newCRRContainerRecreateStates)
 	}

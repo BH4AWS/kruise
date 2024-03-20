@@ -35,6 +35,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
+	policyv1alpha1 "github.com/openkruise/kruise/apis/policy/v1alpha1"
+	"github.com/openkruise/kruise/pkg/control/pubcontrol"
 	"github.com/openkruise/kruise/pkg/controller/sidecarterminator"
 	"github.com/openkruise/kruise/pkg/features"
 	"github.com/openkruise/kruise/pkg/util"
@@ -131,6 +133,18 @@ func (h *ContainerRecreateRequestHandler) Handle(ctx context.Context, req admiss
 		return admission.Errored(http.StatusBadRequest, fmt.Errorf("not allowed to recreate containers in an inactive Pod"))
 	} else if pod.Spec.NodeName == "" {
 		return admission.Errored(http.StatusBadRequest, fmt.Errorf("not allowed to recreate containers in a pending Pod"))
+	}
+
+	// when the CRR resource is created to kill pod container, the PUB policy of the CRR spec pod should be validated
+	if req.AdmissionRequest.Operation == admissionv1.Create && !obj.Spec.Strategy.ForceRecreate {
+		allowed, reason, err := pubcontrol.PodUnavailableBudgetValidatePod(pod, policyv1alpha1.PubDeleteOperation, "kruise-manager", false)
+		if err != nil {
+			return admission.Errored(http.StatusBadRequest,
+				fmt.Errorf("Failed to check PUB policy, try again in seconds, err: %v, reason: %v", err, reason))
+		} else if !allowed {
+			return admission.Errored(http.StatusBadRequest,
+				fmt.Errorf("CRR resources cannot be created because of the violation rules of the PUB policy, reason: %v", reason))
+		}
 	}
 
 	err = injectPodIntoContainerRecreateRequest(obj, pod)
